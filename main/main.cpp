@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
 	parser.process(app);
 
 	// data_io
-	//DataIO* dataIO = new DataIO;
+	DataIO* dataIO = new DataIO;
 
 	if (!parser.positionalArguments().isEmpty())
 	{
@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 	{
 		// Start mainwindow
 		MainWindow mainWin;
-		//mainWin.setDataIO(dataIO);
+		mainWin.setDataIO(dataIO);
 
 		mainWin.show();
 		return app.exec();

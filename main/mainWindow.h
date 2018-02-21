@@ -51,6 +51,8 @@ private:
 
 private slots:
 	void executeComplete();
+	void sourceFileReadStatusPrint(bool);
+	void targetFileReadStatusPrint(bool);
 };
 
 #endif // !MAINWINDOW_H

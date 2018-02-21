@@ -106,6 +106,10 @@ void MainWindow::execute()
 	// lock the execute button
 	ui.executePushButton->setEnabled(false);
 
+	// connect execute signal slots
+	connect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
+	connect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
+
 	// Instantiate the watcher to unlock
 	m_watcher = new QFutureWatcher<void>;
 	connect(m_watcher, SIGNAL(finished()), this, SLOT(executeComplete()));
@@ -118,14 +122,44 @@ void MainWindow::execute()
 void MainWindow::executeRun()
 {
 	qDebug() << "Start load data...";
-	//m_dataIO->SetSourcePath();
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-	qDebug() << "Finish from thread" << QThread::currentThread();
+	m_dataIO->SetSourcePath(ui.sourcePlainTextEdit->toPlainText());
+	m_dataIO->SetTargetPath(ui.targetPlainTextEdit->toPlainText());
+	bool readStatus = m_dataIO->Read();
+	if (readStatus)
+	{
+		qDebug() << "read file fail";
+		return;
+	}
+	else
+	{
+		qDebug() << "read file success";
+		qDebug() << "Finish from thread" << QThread::currentThread();
+	}
+}
+
+void MainWindow::sourceFileReadStatusPrint(bool status)
+{
+	if (status)
+		ui.textBrowser->append("Source file read fail");
+	else
+		ui.textBrowser->append("Source file read success");
+}
+
+void MainWindow::targetFileReadStatusPrint(bool status)
+{
+	if (status)
+		ui.textBrowser->append("Target file read fail");
+	else
+		ui.textBrowser->append("Target file read success");
 }
 
 void MainWindow::executeComplete()
 {
+	// disconnect related signal slots
+	disconnect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
+	disconnect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
+
 	qDebug() << "Execute complete";
 	ui.executePushButton->setEnabled(true);
 	delete m_watcher;
