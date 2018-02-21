@@ -15,6 +15,8 @@
 
 #include <iostream>
 
+#include "data_io.h"
+
 #include <qDebug>
 #include <chrono>
 #include <thread>
@@ -25,6 +27,7 @@ class MainWindow : public QMainWindow
 
 public:
 	explicit MainWindow(QMainWindow *parent=nullptr);
+	void setDataIO(DataIO*);
 
 protected:
 
@@ -35,14 +38,17 @@ private slots :
 	void initialTransformSet();
 	void initialTransformValueChange();
 	void execute();
+
 signals:
-	void executeCompleted();
+	void loadDataComplete();
 private:
 	Ui::MainWindow ui;
 	void initialTransformMatrixEnable(bool enable);
-	int executeRun();
+	void executeRun();
 	
-	QFutureWatcher<int>* m_watcher;
+	QFutureWatcher<void>* m_watcher;
+	DataIO* m_dataIO;
+
 private slots:
 	void executeComplete();
 };

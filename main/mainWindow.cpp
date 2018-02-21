@@ -118,7 +118,7 @@ void MainWindow::execute()
 void MainWindow::executeRun()
 {
 	qDebug() << "Start load data...";
-	m_dataIO->SetSourcePath();
+	//m_dataIO->SetSourcePath();
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 	qDebug() << "Finish from thread" << QThread::currentThread();

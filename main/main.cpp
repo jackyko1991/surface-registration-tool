@@ -3,6 +3,7 @@
 #include <QCommandLineOption>
 
 #include "mainWindow.h"
+#include "data_io.h"
 #include <iostream>
 
 int main(int argc, char * argv[])
@@ -28,6 +29,9 @@ int main(int argc, char * argv[])
 
 	parser.process(app);
 
+	// data_io
+	//DataIO* dataIO = new DataIO;
+
 	if (!parser.positionalArguments().isEmpty())
 	{
 		std::cout << "Commandline mode under development" << std::endl;
@@ -37,8 +41,11 @@ int main(int argc, char * argv[])
 	{
 		// Start mainwindow
 		MainWindow mainWin;
+		//mainWin.setDataIO(dataIO);
 
 		mainWin.show();
 		return app.exec();
 	}
+
+	//delete dataIO;
 }
