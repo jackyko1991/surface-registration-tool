@@ -9,6 +9,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkXMLPolyDataReader.h>
 #include <vtkSTLReader.h>
+#include "observe_error.h"
 
 class DataIO : public QObject
 {
@@ -29,6 +30,7 @@ public:
 	void WriteTransformMatrix(bool);
 	bool Read();
 	void Write();
+	std::string GetErrorMessage();
 
 public slots:
 
@@ -47,7 +49,7 @@ private:
 	vtkPolyData* m_sourceSurface;
 	vtkPolyData* m_targetSurface;
 	vtkPolyData* m_outputSurface;
-
+	std::string m_errorMessage;
 };
 
 #endif // !DATA_IO_H

@@ -47,5 +47,5 @@ int main(int argc, char * argv[])
 		return app.exec();
 	}
 
-	//delete dataIO;
+	delete dataIO;
 }

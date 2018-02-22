@@ -74,12 +74,12 @@ void MainWindow::initialTransformSet()
 		ui.initialTransformComboBox->currentText() == "User Matrix")
 	{
 		// set spinbox to editable
-		this->initialTransformMatrixEnable(true);
+		ui.initialTransformTableView->setEnabled(true);
 	}
 	else
 	{
 		// set spinbox to non editable
-		this->initialTransformMatrixEnable(false);
+		ui.initialTransformTableView->setEnabled(false);
 	}
 
 	if (ui.initialTransformComboBox->currentText() == "Identity")
@@ -103,8 +103,25 @@ void MainWindow::initialTransformValueChange()
 
 void MainWindow::execute()
 {
-	// lock the execute button
+	// lock ui
+	ui.sourcePlainTextEdit->setEnabled(false);
+	ui.sourcePushButton->setEnabled(false);
+	ui.targetPlainTextEdit->setEnabled(false);
+	ui.targetPushButton->setEnabled(false);
+	ui.outputPlainTextEdit->setEnabled(false);
+	ui.outputPushButton->setEnabled(false);
+	ui.initialTransformComboBox->setEnabled(false);
+	ui.initialTransformTableView->setEnabled(false);
+	ui.tfmCheckBox->setEnabled(false);
+	ui.stlCheckBox->setEnabled(false);
+	ui.vtpCheckBox->setEnabled(false);
 	ui.executePushButton->setEnabled(false);
+
+	// clear log
+	ui.textBrowser->clear();
+
+	// reset progress bar
+	ui.progressBar->reset();
 
 	// connect execute signal slots
 	connect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
@@ -131,27 +148,42 @@ void MainWindow::executeRun()
 		qDebug() << "read file fail";
 		return;
 	}
-	else
-	{
-		qDebug() << "read file success";
-		qDebug() << "Finish from thread" << QThread::currentThread();
-	}
+
+	qDebug() << "read file success";
+
+	// registration
+	SurfaceRegistration surfaceReg;
+	surfaceReg.SetInitialTransformType(SurfaceRegistration::InitialTransformEnum(ui.initialTransformComboBox->currentIndex()));
+	surfaceReg.Update();
+
 }
 
 void MainWindow::sourceFileReadStatusPrint(bool status)
 {
 	if (status)
-		ui.textBrowser->append("Source file read fail");
+	{
+		ui.textBrowser->append("Source surface read fail");
+		ui.textBrowser->append(m_dataIO->GetErrorMessage().c_str());
+	}
 	else
-		ui.textBrowser->append("Source file read success");
+	{
+		ui.textBrowser->append("Source surface read success");
+		ui.progressBar->setValue(15);
+	}
 }
 
 void MainWindow::targetFileReadStatusPrint(bool status)
 {
 	if (status)
-		ui.textBrowser->append("Target file read fail");
+	{
+		ui.textBrowser->append("Target surface read fail");
+		ui.textBrowser->append(m_dataIO->GetErrorMessage().c_str());
+	}
 	else
-		ui.textBrowser->append("Target file read success");
+	{
+		ui.textBrowser->append("Target surface read success");
+		ui.progressBar->setValue(30);
+	}
 }
 
 void MainWindow::executeComplete()
@@ -161,18 +193,20 @@ void MainWindow::executeComplete()
 	disconnect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
 
 	qDebug() << "Execute complete";
+
+	// unlock ui
+	ui.sourcePlainTextEdit->setEnabled(true);
+	ui.sourcePushButton->setEnabled(true);
+	ui.targetPlainTextEdit->setEnabled(true);
+	ui.targetPushButton->setEnabled(true);
+	ui.outputPlainTextEdit->setEnabled(true);
+	ui.outputPushButton->setEnabled(true);
+	ui.initialTransformComboBox->setEnabled(true);
+	ui.initialTransformTableView->setEnabled(true);
+	ui.tfmCheckBox->setEnabled(true);
+	ui.stlCheckBox->setEnabled(true);
+	ui.vtpCheckBox->setEnabled(true);
 	ui.executePushButton->setEnabled(true);
 	delete m_watcher;
-}
-
-void MainWindow::initialTransformMatrixEnable(bool enable)
-{
-	for (int row = 0; row < 4; ++row) {
-		for (int column = 0; column < 4; ++column) {
-			// set spinbox to non editable
-			QStandardItemModel* model = (QStandardItemModel*)ui.initialTransformTableView->model();
-			model->item(row, column)->setEnabled(enable);
-		}
-	}
 }
 

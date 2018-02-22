@@ -51,47 +51,114 @@ bool DataIO::Read()
 	// check file existence
 	if (!(m_sourceFile.isFile()&&m_sourceFile.exists()))
 	{
+		m_errorMessage = "Source surface not exist";
 		emit sourceFileReadStatus(1);
 		return 1;
 	}
 
 	if (!(m_targetFile.isFile() && m_targetFile.exists()))
 	{
+		m_errorMessage = "Target surface not exist";
 		emit targetFileReadStatus(1);
 		return 1;
 	}
 
+	vtkSmartPointer<ErrorObserver> errorObserver = vtkSmartPointer<ErrorObserver>::New();
+
 	if (m_sourceFile.suffix() == "vtp" || m_sourceFile.suffix() == "VTP")
 	{
 		vtkSmartPointer<vtkXMLPolyDataReader> reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
-		reader->SetFileName(m_sourceFile.absolutePath().toStdString().c_str());
+		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
+		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
 		reader->Update();
-		m_sourceSurface->DeepCopy(reader->GetOutput());
+
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit sourceFileReadStatus(1);
+			return 1;
+		}
+		else
+		{
+			m_sourceSurface->DeepCopy(reader->GetOutput());
+			emit sourceFileReadStatus(0);
+		}
 	}
 	else if (m_sourceFile.suffix() == "stl" || m_sourceFile.suffix() == "STL")
 	{
 		vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
-		reader->SetFileName(m_sourceFile.absolutePath().toStdString().c_str());
+		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
+		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
 		reader->Update();
-		m_sourceSurface->DeepCopy(reader->GetOutput());
-	}
-	emit sourceFileReadStatus(0);
 
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit sourceFileReadStatus(1);
+			return 1;
+		}
+		else
+		{
+			m_sourceSurface->DeepCopy(reader->GetOutput());
+			emit sourceFileReadStatus(0);
+		}
+	}
+	else
+	{
+		m_errorMessage = "Invalid data type";
+		emit sourceFileReadStatus(1);
+		return 1;
+	}
+	
 	if (m_targetFile.suffix() == "vtp" || m_targetFile.suffix() == "VTP")
 	{
 		vtkSmartPointer<vtkXMLPolyDataReader> reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
-		reader->SetFileName(m_sourceFile.absolutePath().toStdString().c_str());
+		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
+		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
 		reader->Update();
-		m_targetSurface->DeepCopy(reader->GetOutput());
+
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit targetFileReadStatus(1);
+			return 1;
+		}
+		else
+		{
+			m_sourceSurface->DeepCopy(reader->GetOutput());
+			emit targetFileReadStatus(0);
+		}
 	}
 	else if (m_targetFile.suffix() == "stl" || m_targetFile.suffix() == "STL")
 	{
 		vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
-		reader->SetFileName(m_sourceFile.absolutePath().toStdString().c_str());
+		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
+		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
 		reader->Update();
-		m_targetSurface->DeepCopy(reader->GetOutput());
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit targetFileReadStatus(1);
+			return 1;
+		}
+		else
+		{
+			m_sourceSurface->DeepCopy(reader->GetOutput());
+			emit targetFileReadStatus(0);
+		}
 	}
-	emit targetFileReadStatus(0);
+	else
+	{
+		m_errorMessage = "Invalid data type";
+		emit targetFileReadStatus(1);
+		return 1;
+	}
+	
 
 	return 0;
+}
+
+std::string DataIO::GetErrorMessage()
+{
+	return m_errorMessage;
 }

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <vtkPolyData.h>
+#include "data_io.h"
 
 
 class SurfaceRegistration : public QObject
@@ -10,10 +11,12 @@ class SurfaceRegistration : public QObject
 	Q_OBJECT
 
 public:
+	enum InitialTransformEnum { user_matrix, identity, centroid, PCA };
 	explicit SurfaceRegistration(QObject* parent = 0);
 	~SurfaceRegistration();
 
-	void SetSource();
+	void SetDataIO(DataIO*);
+	void SetInitialTransformType(InitialTransformEnum);
 	void Update();
 
 public slots:
@@ -21,7 +24,8 @@ public slots:
 signals:
 
 private:
-
+	InitialTransformEnum m_initialTransformEnum;
+	DataIO* m_dataIO;
 };
 
 #endif // !SURFACE_REGISTRATION

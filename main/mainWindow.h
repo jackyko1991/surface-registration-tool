@@ -14,8 +14,8 @@
 #include <QFutureWatcher>
 
 #include <iostream>
-
 #include "data_io.h"
+#include "surface_registration.h"
 
 #include <qDebug>
 #include <chrono>
@@ -38,21 +38,19 @@ private slots :
 	void initialTransformSet();
 	void initialTransformValueChange();
 	void execute();
+	void executeComplete();
+	void sourceFileReadStatusPrint(bool);
+	void targetFileReadStatusPrint(bool);
 
 signals:
 	void loadDataComplete();
 private:
 	Ui::MainWindow ui;
-	void initialTransformMatrixEnable(bool enable);
 	void executeRun();
 	
 	QFutureWatcher<void>* m_watcher;
 	DataIO* m_dataIO;
-
-private slots:
-	void executeComplete();
-	void sourceFileReadStatusPrint(bool);
-	void targetFileReadStatusPrint(bool);
+	
 };
 
 #endif // !MAINWINDOW_H
