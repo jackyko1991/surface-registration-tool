@@ -4,6 +4,11 @@ MainWindow::MainWindow(QMainWindow *parent)
 {
 	ui.setupUi(this);
 
+	// qvtk widget start
+	m_renderer = vtkRenderer::New();
+
+	ui.qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
+
 	// initial transform matrix table
 	QStandardItemModel* model = new QStandardItemModel(4, 4);
 	ui.initialTransformTableView->setModel(model);
@@ -23,7 +28,7 @@ MainWindow::MainWindow(QMainWindow *parent)
 
 	for (int i = 0; i < 4; i++)
 	{
-		ui.initialTransformTableView->horizontalHeader()->resizeSection(i, 80);
+		ui.initialTransformTableView->horizontalHeader()->resizeSection(i, 82);
 		ui.initialTransformTableView->verticalHeader()->resizeSection(i, 25);
 	}
 
@@ -43,6 +48,11 @@ void MainWindow::browseSource()
 
 	if (!sourceFile.isNull())
 		ui.sourcePlainTextEdit->setPlainText(sourceFile);
+}
+
+MainWindow::~MainWindow()
+{
+	m_renderer->Delete();
 }
 
 void MainWindow::setDataIO(DataIO* dataIO)

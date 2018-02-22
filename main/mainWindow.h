@@ -12,10 +12,14 @@
 #include <QFuture>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <QFutureWatcher>
+#include <QVTKWidget.h>
 
 #include <iostream>
 #include "data_io.h"
 #include "surface_registration.h"
+
+#include "vtkRenderer.h"
+#include "vtkRenderWindow.h"
 
 #include <qDebug>
 #include <chrono>
@@ -27,6 +31,7 @@ class MainWindow : public QMainWindow
 
 public:
 	explicit MainWindow(QMainWindow *parent=nullptr);
+	~MainWindow();
 	void setDataIO(DataIO*);
 
 protected:
@@ -50,7 +55,7 @@ private:
 	
 	QFutureWatcher<void>* m_watcher;
 	DataIO* m_dataIO;
-	
+	vtkRenderer* m_renderer;
 };
 
 #endif // !MAINWINDOW_H
