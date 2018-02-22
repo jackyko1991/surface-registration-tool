@@ -9,6 +9,22 @@ MainWindow::MainWindow(QMainWindow *parent)
 
 	ui.qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
 
+	m_sourceMapper = vtkPolyDataMapper::New();
+	m_targetMapper = vtkPolyDataMapper::New();
+	m_sourceActor = vtkActor::New();
+	m_targetActor = vtkActor::New();
+
+	m_sourceActor->SetMapper(m_sourceMapper);
+	m_sourceActor->GetProperty()->SetColor(1, 0, 0);
+	m_sourceActor->GetProperty()->SetOpacity(0.7);
+
+	m_targetActor->SetMapper(m_targetMapper);
+	m_targetActor->GetProperty()->SetColor(0, 1, 0);
+	m_targetActor->GetProperty()->SetOpacity(0.7);
+
+	m_renderer->AddActor(m_sourceActor);
+	m_renderer->AddActor(m_targetActor);
+
 	// initial transform matrix table
 	QStandardItemModel* model = new QStandardItemModel(4, 4);
 	ui.initialTransformTableView->setModel(model);
@@ -47,12 +63,30 @@ void MainWindow::browseSource()
 		tr("Browse Source"), ui.sourcePlainTextEdit->toPlainText(), tr("Surface Files (*.stl *.vtp)"));
 
 	if (!sourceFile.isNull())
+	{
 		ui.sourcePlainTextEdit->setPlainText(sourceFile);
+		m_dataIO->SetSourcePath(ui.sourcePlainTextEdit->toPlainText());
+
+		// connect read file signal slots
+		connect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
+
+		bool readStatus = m_dataIO->ReadSource();
+
+		if (!readStatus)
+		{
+			this->renderSource();
+			m_renderer->ResetCamera();
+		}
+	}
 }
 
 MainWindow::~MainWindow()
 {
 	m_renderer->Delete();
+	m_sourceMapper->Delete();
+	m_targetMapper->Delete();
+	m_sourceActor->Delete();
+	m_targetActor->Delete();
 }
 
 void MainWindow::setDataIO(DataIO* dataIO)
@@ -108,64 +142,102 @@ void MainWindow::initialTransformSet()
 
 void MainWindow::initialTransformValueChange()
 {
-	ui.initialTransformComboBox->setCurrentText("User Matrix");
+	if (ui.initialTransformComboBox->currentText() == "Identity")
+		ui.initialTransformComboBox->setCurrentText("User Matrix");
+
+	for (int row = 0; row < 4; row++)
+	{
+		for (int column = 0; column < 4; column++)
+		{
+			QModelIndex index = ui.initialTransformTableView->model()->index(row, column, QModelIndex());
+			m_dataIO->GetInitialTransform()->SetElement(row, column, ui.initialTransformTableView->model()->data(index).value<double>());
+		}
+	}
+	
+	this->renderSource();
 }
 
 void MainWindow::execute()
 {
-	// lock ui
-	ui.sourcePlainTextEdit->setEnabled(false);
-	ui.sourcePushButton->setEnabled(false);
-	ui.targetPlainTextEdit->setEnabled(false);
-	ui.targetPushButton->setEnabled(false);
-	ui.outputPlainTextEdit->setEnabled(false);
-	ui.outputPushButton->setEnabled(false);
-	ui.initialTransformComboBox->setEnabled(false);
-	ui.initialTransformTableView->setEnabled(false);
-	ui.tfmCheckBox->setEnabled(false);
-	ui.stlCheckBox->setEnabled(false);
-	ui.vtpCheckBox->setEnabled(false);
-	ui.executePushButton->setEnabled(false);
+	//// lock ui
+	//ui.sourcePlainTextEdit->setEnabled(false);
+	//ui.sourcePushButton->setEnabled(false);
+	//ui.targetPlainTextEdit->setEnabled(false);
+	//ui.targetPushButton->setEnabled(false);
+	//ui.outputPlainTextEdit->setEnabled(false);
+	//ui.outputPushButton->setEnabled(false);
+	//ui.initialTransformComboBox->setEnabled(false);
+	//ui.initialTransformTableView->setEnabled(false);
+	//ui.tfmCheckBox->setEnabled(false);
+	//ui.stlCheckBox->setEnabled(false);
+	//ui.vtpCheckBox->setEnabled(false);
+	//ui.executePushButton->setEnabled(false);
 
-	// clear log
-	ui.textBrowser->clear();
+	//// clear log
+	//ui.textBrowser->clear();
 
-	// reset progress bar
-	ui.progressBar->reset();
+	//// reset progress bar
+	//ui.progressBar->reset();
 
-	// connect execute signal slots
-	connect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
-	connect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
+	//// connect execute signal slots
+	//connect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
+	//connect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
 
-	// Instantiate the watcher to unlock
-	m_watcher = new QFutureWatcher<void>;
-	connect(m_watcher, SIGNAL(finished()), this, SLOT(executeComplete()));
+	//// Instantiate the watcher to unlock
+	//m_watcher = new QFutureWatcher<void>;
+	//connect(m_watcher, SIGNAL(finished()), this, SLOT(executeComplete()));
 
-	// use QtConcurrent to run the registration on a new thread;
-	QFuture<void> future = QtConcurrent::run(this,&MainWindow::executeRun);
-	m_watcher->setFuture(future);
+	//// use QtConcurrent to run the registration on a new thread;
+	//QFuture<void> future = QtConcurrent::run(this,&MainWindow::executeRun);
+	//m_watcher->setFuture(future);
 }
 
 void MainWindow::executeRun()
 {
-	qDebug() << "Start load data...";
+	//qDebug() << "Start load data...";
 
-	m_dataIO->SetSourcePath(ui.sourcePlainTextEdit->toPlainText());
-	m_dataIO->SetTargetPath(ui.targetPlainTextEdit->toPlainText());
-	bool readStatus = m_dataIO->Read();
-	if (readStatus)
+	//m_dataIO->SetSourcePath(ui.sourcePlainTextEdit->toPlainText());
+	//m_dataIO->SetTargetPath(ui.targetPlainTextEdit->toPlainText());
+	//bool readStatus = m_dataIO->Read();
+	//if (readStatus)
+	//{
+	//	qDebug() << "read file fail";
+	//	return;
+	//}
+
+	//qDebug() << "read file success";
+
+	//// registration
+	//SurfaceRegistration surfaceReg;
+	//surfaceReg.SetInitialTransformType(SurfaceRegistration::InitialTransformEnum(ui.initialTransformComboBox->currentIndex()));
+	//surfaceReg.Update();
+
+}
+
+void MainWindow::renderSource()
+{
+	if (!(m_dataIO->GetSourceSurface()->GetNumberOfCells() > 0 ||
+		m_dataIO->GetSourceSurface()->GetNumberOfPoints() > 0))
 	{
-		qDebug() << "read file fail";
 		return;
 	}
 
-	qDebug() << "read file success";
+	m_dataIO->GetInitialTransform()->Print(std::cout);
+	auto transformMat = m_dataIO->GetInitialTransform();
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->SetMatrix(transformMat);
+	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	transformFilter->SetTransform(transform);
+	transformFilter->SetInputData(m_dataIO->GetSourceSurface());
 
-	// registration
-	SurfaceRegistration surfaceReg;
-	surfaceReg.SetInitialTransformType(SurfaceRegistration::InitialTransformEnum(ui.initialTransformComboBox->currentIndex()));
-	surfaceReg.Update();
+	transformFilter->Update();
+	m_sourceMapper->SetInputData(transformFilter->GetOutput());
+	std::cout <<
+		transformFilter->GetOutput()->GetPoint(0)[0] << "," <<
+		transformFilter->GetOutput()->GetPoint(0)[1] << "," <<
+		transformFilter->GetOutput()->GetPoint(0)[2] << std::endl;
 
+	ui.qvtkWidget->update();
 }
 
 void MainWindow::sourceFileReadStatusPrint(bool status)
@@ -178,7 +250,6 @@ void MainWindow::sourceFileReadStatusPrint(bool status)
 	else
 	{
 		ui.textBrowser->append("Source surface read success");
-		ui.progressBar->setValue(15);
 	}
 }
 
@@ -192,7 +263,6 @@ void MainWindow::targetFileReadStatusPrint(bool status)
 	else
 	{
 		ui.textBrowser->append("Target surface read success");
-		ui.progressBar->setValue(30);
 	}
 }
 

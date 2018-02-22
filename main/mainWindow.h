@@ -20,6 +20,12 @@
 
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
+#include "vtkActor.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkMatrix4x4.h"
+#include "vtkTransform.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkProperty.h"
 
 #include <qDebug>
 #include <chrono>
@@ -52,10 +58,15 @@ signals:
 private:
 	Ui::MainWindow ui;
 	void executeRun();
+	void renderSource();
 	
 	QFutureWatcher<void>* m_watcher;
 	DataIO* m_dataIO;
 	vtkRenderer* m_renderer;
+	vtkPolyDataMapper* m_sourceMapper;
+	vtkPolyDataMapper* m_targetMapper;
+	vtkActor* m_sourceActor;
+	vtkActor* m_targetActor;
 };
 
 #endif // !MAINWINDOW_H

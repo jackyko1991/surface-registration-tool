@@ -9,6 +9,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkXMLPolyDataReader.h>
 #include <vtkSTLReader.h>
+#include <vtkMatrix4x4.h>
 #include "observe_error.h"
 
 class DataIO : public QObject
@@ -24,11 +25,15 @@ public:
 	void SetOutputDir(QString);
 	vtkPolyData* GetSourceSurface();
 	vtkPolyData* GetTargetSurface();
-	vtkPolyData* SetOutputSurface();
+	vtkPolyData* GetOutputSurface();
+	void SetOutputSurface(vtkPolyData*);
 	void WriteTransformedSTL(bool);
 	void WriteTransformedVTP(bool);
 	void WriteTransformMatrix(bool);
-	bool Read();
+	vtkMatrix4x4* GetInitialTransform();
+	vtkMatrix4x4* GetRegistartionTransform();
+	bool ReadSource();
+	bool ReadTarget();
 	void Write();
 	std::string GetErrorMessage();
 
@@ -50,6 +55,8 @@ private:
 	vtkPolyData* m_targetSurface;
 	vtkPolyData* m_outputSurface;
 	std::string m_errorMessage;
+	vtkMatrix4x4* m_initialTransform;
+	vtkMatrix4x4* m_registrationTransform;
 };
 
 #endif // !DATA_IO_H
