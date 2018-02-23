@@ -16,11 +16,11 @@ MainWindow::MainWindow(QMainWindow *parent)
 
 	m_sourceActor->SetMapper(m_sourceMapper);
 	m_sourceActor->GetProperty()->SetColor(1, 0, 0);
-	m_sourceActor->GetProperty()->SetOpacity(0.7);
+	//m_sourceActor->GetProperty()->SetOpacity(0.7);
 
 	m_targetActor->SetMapper(m_targetMapper);
 	m_targetActor->GetProperty()->SetColor(0, 1, 0);
-	m_targetActor->GetProperty()->SetOpacity(0.7);
+	//m_targetActor->GetProperty()->SetOpacity(0.7);
 
 	m_renderer->AddActor(m_sourceActor);
 	m_renderer->AddActor(m_targetActor);
@@ -54,6 +54,19 @@ MainWindow::MainWindow(QMainWindow *parent)
 	connect(ui.outputPushButton, SIGNAL(clicked()), this, SLOT(browseOutput()));
 	connect(ui.initialTransformComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(initialTransformSet()));
 	connect(ui.initialTransformTableView->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(initialTransformValueChange()));
+	connect(ui.rotateXSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateXSliderValueChange(int)));
+	connect(ui.rotateYSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateYSliderValueChange(int)));
+	connect(ui.rotateZSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateZSliderValueChange(int)));
+	connect(ui.translateXSlider, SIGNAL(valueChanged(int)), this, SLOT(translateXSliderValueChange(int)));
+	connect(ui.translateYSlider, SIGNAL(valueChanged(int)), this, SLOT(translateYSliderValueChange(int)));
+	connect(ui.translateZSlider, SIGNAL(valueChanged(int)), this, SLOT(translateZSliderValueChange(int)));
+	connect(ui.rotateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateXSpinBoxValueChange(double)));
+	connect(ui.rotateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateYSpinBoxValueChange(double)));
+	connect(ui.rotateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateZSpinBoxValueChange(double)));
+	connect(ui.translateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateXSpinBoxValueChange(double)));
+	connect(ui.translateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateYSpinBoxValueChange(double)));
+	connect(ui.translateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateZSpinBoxValueChange(double)));
+
 	connect(ui.executePushButton, SIGNAL(clicked()), this, SLOT(execute()));
 }
 
@@ -232,12 +245,21 @@ void MainWindow::renderSource()
 
 	transformFilter->Update();
 	m_sourceMapper->SetInputData(transformFilter->GetOutput());
-	std::cout <<
-		transformFilter->GetOutput()->GetPoint(0)[0] << "," <<
-		transformFilter->GetOutput()->GetPoint(0)[1] << "," <<
-		transformFilter->GetOutput()->GetPoint(0)[2] << std::endl;
+	//std::cout <<
+	//	transformFilter->GetOutput()->GetPoint(0)[0] << "," <<
+	//	transformFilter->GetOutput()->GetPoint(0)[1] << "," <<
+	//	transformFilter->GetOutput()->GetPoint(0)[2] << std::endl;
 
 	ui.qvtkWidget->update();
+}
+
+void MainWindow::UpdateMatrixFromTransformWidgets()
+{
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	std::cout
+		<< m_dataIO->GetSourceCentroid()[0] << ","
+		<< m_dataIO->GetSourceCentroid()[1] << ","
+		<< m_dataIO->GetSourceCentroid()[2] << std::endl;
 }
 
 void MainWindow::sourceFileReadStatusPrint(bool status)
@@ -266,6 +288,12 @@ void MainWindow::targetFileReadStatusPrint(bool status)
 	}
 }
 
+void MainWindow::rotateXSliderValueChange(int value)
+{
+	ui.rotateXDoubleSpinBox->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
 void MainWindow::executeComplete()
 {
 	// disconnect related signal slots
@@ -290,3 +318,8 @@ void MainWindow::executeComplete()
 	delete m_watcher;
 }
 
+void MainWindow::rotateXSpinBoxValueChange(double value)
+{
+	ui.rotateXSlider->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}

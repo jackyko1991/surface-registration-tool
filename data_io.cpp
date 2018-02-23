@@ -7,6 +7,15 @@ DataIO::DataIO(QObject* parent)
 	m_outputSurface = vtkPolyData::New();
 	m_initialTransform = vtkMatrix4x4::New();
 	m_registrationTransform = vtkMatrix4x4::New();
+
+	m_sourceCentroid = new double[3];
+	m_targetCentroid = new double[3];
+
+	for (int i = 0; i < 3; i++)
+	{
+		m_sourceCentroid[i] = 0;
+		m_targetCentroid[i] = 0;
+	}
 }
 
 DataIO::~DataIO()
@@ -16,6 +25,8 @@ DataIO::~DataIO()
 	m_outputSurface->Delete();
 	m_initialTransform->Delete();
 	m_registrationTransform->Delete();
+	delete m_sourceCentroid;
+	delete m_targetCentroid;
 }
 
 void DataIO::SetSourcePath(QString sourcePath)
@@ -46,6 +57,16 @@ vtkPolyData * DataIO::GetTargetSurface()
 vtkPolyData * DataIO::GetOutputSurface()
 {
 	return m_outputSurface;
+}
+
+double* DataIO::GetSourceCentroid()
+{
+	return m_sourceCentroid;
+}
+
+double * DataIO::GetTargetCentroid()
+{
+	return m_targetCentroid;
 }
 
 //bool DataIO::Read()
@@ -143,7 +164,6 @@ bool DataIO::ReadSource()
 		else
 		{
 			m_sourceSurface->DeepCopy(reader->GetOutput());
-			m_outputSurface->DeepCopy(reader->GetOutput());
 			emit sourceFileReadStatus(0);
 		}
 	}
@@ -163,7 +183,6 @@ bool DataIO::ReadSource()
 		else
 		{
 			m_sourceSurface->DeepCopy(reader->GetOutput());
-			m_outputSurface->DeepCopy(reader->GetOutput());
 			emit sourceFileReadStatus(0);
 		}
 	}
@@ -173,6 +192,14 @@ bool DataIO::ReadSource()
 		emit sourceFileReadStatus(1);
 		return 1;
 	}
+
+	// calculate source surface centroid
+	vtkSmartPointer<vtkCenterOfMass> comFilter = vtkSmartPointer<vtkCenterOfMass>::New();
+	comFilter->SetInputData(m_sourceSurface);
+	comFilter->Update();
+	m_sourceCentroid[0] = comFilter->GetCenter()[0];
+	m_sourceCentroid[1] = comFilter->GetCenter()[1];
+	m_sourceCentroid[2] = comFilter->GetCenter()[2];
 
 	return 0;
 }

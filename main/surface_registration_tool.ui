@@ -383,7 +383,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="rotatXDoubleSpinBox">
+              <widget class="QDoubleSpinBox" name="rotateXDoubleSpinBox">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -444,7 +444,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="rototeYDoubleSpinBox">
+              <widget class="QDoubleSpinBox" name="rotateYDoubleSpinBox">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -782,7 +782,7 @@
      <widget class="QWidget" name="widget_3" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="QVTKWidget" name="qvtkWidget">
+        <widget class="QVTKWidget" name="qvtkWidget" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -853,7 +853,7 @@
      <x>0</x>
      <y>0</y>
      <width>1176</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

@@ -11,6 +11,7 @@
 #include <vtkSTLReader.h>
 #include <vtkMatrix4x4.h>
 #include "observe_error.h"
+#include <vtkCenterOfMass.h>
 
 class DataIO : public QObject
 {
@@ -26,6 +27,8 @@ public:
 	vtkPolyData* GetSourceSurface();
 	vtkPolyData* GetTargetSurface();
 	vtkPolyData* GetOutputSurface();
+	double* GetSourceCentroid();
+	double* GetTargetCentroid();
 	void SetOutputSurface(vtkPolyData*);
 	void WriteTransformedSTL(bool);
 	void WriteTransformedVTP(bool);
@@ -57,6 +60,8 @@ private:
 	std::string m_errorMessage;
 	vtkMatrix4x4* m_initialTransform;
 	vtkMatrix4x4* m_registrationTransform;
+	double* m_sourceCentroid;
+	double* m_targetCentroid;
 };
 
 #endif // !DATA_IO_H
