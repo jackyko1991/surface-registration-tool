@@ -53,17 +53,17 @@ private slots :
 	void sourceFileReadStatusPrint(bool);
 	void targetFileReadStatusPrint(bool);
 	void rotateXSliderValueChange(int);
-	void rotateYSliderValueChange(int);
-	void rotateZSliderValueChange(int);
-	void translateXSliderValueChange(int);
-	void translateYSliderValueChange(int);
-	void translateZSliderValueChange(int);
+	//void rotateYSliderValueChange(int);
+	//void rotateZSliderValueChange(int);
+	//void translateXSliderValueChange(int);
+	//void translateYSliderValueChange(int);
+	//void translateZSliderValueChange(int);
 	void rotateXSpinBoxValueChange(double);
-	void rotateYSpinBoxValueChange(double);
-	void rotateZSpinBoxValueChange(double);
-	void translateXSpinBoxValueChange(double);
-	void translateYSpinBoxValueChange(double);
-	void translateZSpinBoxValueChange(double);
+	//void rotateYSpinBoxValueChange(double);
+	//void rotateZSpinBoxValueChange(double);
+	//void translateXSpinBoxValueChange(double);
+	//void translateYSpinBoxValueChange(double);
+	//void translateZSpinBoxValueChange(double);
 
 signals:
 	void loadDataComplete();
@@ -71,6 +71,7 @@ private:
 	Ui::MainWindow ui;
 	void executeRun();
 	void renderSource();
+	void renderTarget();
 	void UpdateMatrixFromTransformWidgets();
 	
 	QFutureWatcher<void>* m_watcher;

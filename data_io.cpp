@@ -69,66 +69,71 @@ double * DataIO::GetTargetCentroid()
 	return m_targetCentroid;
 }
 
-//bool DataIO::Read()
-//{
-//	if (!(m_targetFile.isFile() && m_targetFile.exists()))
-//	{
-//		m_errorMessage = "Target surface not exist";
-//		emit targetFileReadStatus(1);
-//		return 1;
-//	}
-//
-//	
-//
-//	
-//	
-//	if (m_targetFile.suffix() == "vtp" || m_targetFile.suffix() == "VTP")
-//	{
-//		vtkSmartPointer<vtkXMLPolyDataReader> reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
-//		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
-//		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
-//		reader->Update();
-//
-//		if (errorObserver->GetError())
-//		{
-//			m_errorMessage = errorObserver->GetErrorMessage();
-//			emit targetFileReadStatus(1);
-//			return 1;
-//		}
-//		else
-//		{
-//			m_sourceSurface->DeepCopy(reader->GetOutput());
-//			emit targetFileReadStatus(0);
-//		}
-//	}
-//	else if (m_targetFile.suffix() == "stl" || m_targetFile.suffix() == "STL")
-//	{
-//		vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
-//		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
-//		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
-//		reader->Update();
-//		if (errorObserver->GetError())
-//		{
-//			m_errorMessage = errorObserver->GetErrorMessage();
-//			emit targetFileReadStatus(1);
-//			return 1;
-//		}
-//		else
-//		{
-//			m_sourceSurface->DeepCopy(reader->GetOutput());
-//			emit targetFileReadStatus(0);
-//		}
-//	}
-//	else
-//	{
-//		m_errorMessage = "Invalid data type";
-//		emit targetFileReadStatus(1);
-//		return 1;
-//	}
-//	
-//
-//	return 0;
-//}
+bool DataIO::ReadTarget()
+{
+	if (!(m_targetFile.isFile() && m_targetFile.exists()))
+	{
+		m_errorMessage = "Target surface not exist";
+		emit targetFileReadStatus(1);
+		return 1;
+	}
+
+	vtkSmartPointer<ErrorObserver> errorObserver = vtkSmartPointer<ErrorObserver>::New();
+
+	if (m_targetFile.suffix() == "vtp" || m_targetFile.suffix() == "VTP")
+	{
+		vtkSmartPointer<vtkXMLPolyDataReader> reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
+		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
+		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
+		reader->Update();
+
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit targetFileReadStatus(1);
+			return 1;
+		}
+		else
+		{
+			m_targetSurface->DeepCopy(reader->GetOutput());
+			emit targetFileReadStatus(0);
+		}
+	}
+	else if (m_targetFile.suffix() == "stl" || m_targetFile.suffix() == "STL")
+	{
+		vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
+		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
+		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
+		reader->Update();
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit targetFileReadStatus(1);
+			return 1;
+		}
+		else
+		{
+			m_targetSurface->DeepCopy(reader->GetOutput());
+			emit targetFileReadStatus(0);
+		}
+	}
+	else
+	{
+		m_errorMessage = "Invalid data type";
+		emit targetFileReadStatus(1);
+		return 1;
+	}
+	
+	// calculate source surface centroid
+	vtkSmartPointer<vtkCenterOfMass> comFilter = vtkSmartPointer<vtkCenterOfMass>::New();
+	comFilter->SetInputData(m_targetSurface);
+	comFilter->Update();
+	m_targetCentroid[0] = comFilter->GetCenter()[0];
+	m_targetCentroid[1] = comFilter->GetCenter()[1];
+	m_targetCentroid[2] = comFilter->GetCenter()[2];
+
+	return 0;
+}
 
 vtkMatrix4x4 * DataIO::GetInitialTransform()
 {

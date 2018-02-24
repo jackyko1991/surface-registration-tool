@@ -55,17 +55,17 @@ MainWindow::MainWindow(QMainWindow *parent)
 	connect(ui.initialTransformComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(initialTransformSet()));
 	connect(ui.initialTransformTableView->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(initialTransformValueChange()));
 	connect(ui.rotateXSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateXSliderValueChange(int)));
-	connect(ui.rotateYSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateYSliderValueChange(int)));
-	connect(ui.rotateZSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateZSliderValueChange(int)));
-	connect(ui.translateXSlider, SIGNAL(valueChanged(int)), this, SLOT(translateXSliderValueChange(int)));
-	connect(ui.translateYSlider, SIGNAL(valueChanged(int)), this, SLOT(translateYSliderValueChange(int)));
-	connect(ui.translateZSlider, SIGNAL(valueChanged(int)), this, SLOT(translateZSliderValueChange(int)));
+	//connect(ui.rotateYSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateYSliderValueChange(int)));
+	//connect(ui.rotateZSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateZSliderValueChange(int)));
+	//connect(ui.translateXSlider, SIGNAL(valueChanged(int)), this, SLOT(translateXSliderValueChange(int)));
+	//connect(ui.translateYSlider, SIGNAL(valueChanged(int)), this, SLOT(translateYSliderValueChange(int)));
+	//connect(ui.translateZSlider, SIGNAL(valueChanged(int)), this, SLOT(translateZSliderValueChange(int)));
 	connect(ui.rotateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateXSpinBoxValueChange(double)));
-	connect(ui.rotateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateYSpinBoxValueChange(double)));
-	connect(ui.rotateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateZSpinBoxValueChange(double)));
-	connect(ui.translateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateXSpinBoxValueChange(double)));
-	connect(ui.translateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateYSpinBoxValueChange(double)));
-	connect(ui.translateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateZSpinBoxValueChange(double)));
+	//connect(ui.rotateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateYSpinBoxValueChange(double)));
+	//connect(ui.rotateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateZSpinBoxValueChange(double)));
+	//connect(ui.translateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateXSpinBoxValueChange(double)));
+	//connect(ui.translateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateYSpinBoxValueChange(double)));
+	//connect(ui.translateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateZSpinBoxValueChange(double)));
 
 	connect(ui.executePushButton, SIGNAL(clicked()), this, SLOT(execute()));
 }
@@ -113,7 +113,21 @@ void MainWindow::browseTarget()
 		tr("Browse Target"), ui.targetPlainTextEdit->toPlainText(), tr("Surface Files (*.stl *.vtp)"));
 
 	if (!targetFile.isNull())
+	{
 		ui.targetPlainTextEdit->setPlainText(targetFile);
+		m_dataIO->SetTargetPath(ui.targetPlainTextEdit->toPlainText());
+
+		// connect read file signal slots
+		connect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
+
+		bool readStatus = m_dataIO->ReadTarget();
+
+		if (!readStatus)
+		{
+			this->renderTarget();
+			m_renderer->ResetCamera();
+		}
+	}
 }
 
 void MainWindow::browseOutput()
@@ -122,7 +136,10 @@ void MainWindow::browseOutput()
 		tr("Set Output Direcotry"), ui.outputPlainTextEdit->toPlainText());
 
 	if (!outputFolder.isNull())
+	{
 		ui.outputPlainTextEdit->setPlainText(outputFolder);
+		
+	}
 }
 
 void MainWindow::initialTransformSet()
@@ -253,6 +270,23 @@ void MainWindow::renderSource()
 	ui.qvtkWidget->update();
 }
 
+void MainWindow::renderTarget()
+{
+	if (!(m_dataIO->GetTargetSurface()->GetNumberOfCells() > 0 ||
+		m_dataIO->GetTargetSurface()->GetNumberOfPoints() > 0))
+	{
+		return;
+	}
+
+	m_targetMapper->SetInputData(m_dataIO->GetTargetSurface());
+	//std::cout <<
+	//	transformFilter->GetOutput()->GetPoint(0)[0] << "," <<
+	//	transformFilter->GetOutput()->GetPoint(0)[1] << "," <<
+	//	transformFilter->GetOutput()->GetPoint(0)[2] << std::endl;
+
+	ui.qvtkWidget->update();
+}
+
 void MainWindow::UpdateMatrixFromTransformWidgets()
 {
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
@@ -260,6 +294,30 @@ void MainWindow::UpdateMatrixFromTransformWidgets()
 		<< m_dataIO->GetSourceCentroid()[0] << ","
 		<< m_dataIO->GetSourceCentroid()[1] << ","
 		<< m_dataIO->GetSourceCentroid()[2] << std::endl;
+	transform->Translate(m_dataIO->GetSourceCentroid()[0], m_dataIO->GetSourceCentroid()[1], m_dataIO->GetSourceCentroid()[2]);
+	transform->RotateX(ui.rotateXDoubleSpinBox->value());
+	transform->RotateY(ui.rotateYDoubleSpinBox->value());
+	transform->RotateZ(ui.rotateZDoubleSpinBox->value());
+	transform->Translate(-m_dataIO->GetSourceCentroid()[0], -m_dataIO->GetSourceCentroid()[1], -m_dataIO->GetSourceCentroid()[2]);
+
+	std::cout
+		<< m_dataIO->GetSourceCentroid()[0] << ","
+		<< m_dataIO->GetSourceCentroid()[1] << ","
+		<< m_dataIO->GetSourceCentroid()[2] << std::endl;
+
+	transform->GetMatrix()->Print(std::cout);
+	std::cout << "===================" << std::endl;
+
+	// update ui matrix
+	for (int row = 0; row < 4; ++row) {
+		for (int column = 0; column < 4; ++column) {
+			QModelIndex index = ui.initialTransformTableView->model()->index(row, column, QModelIndex());
+			ui.initialTransformTableView->model()->setData(index, QVariant(transform->GetMatrix()->GetElement(row,column)));
+		}
+	}
+
+	// update database initial transform matrix
+	m_dataIO->GetInitialTransform()->DeepCopy(transform->GetMatrix());
 }
 
 void MainWindow::sourceFileReadStatusPrint(bool status)
