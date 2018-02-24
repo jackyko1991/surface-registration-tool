@@ -53,14 +53,14 @@ private slots :
 	void sourceFileReadStatusPrint(bool);
 	void targetFileReadStatusPrint(bool);
 	void rotateXSliderValueChange(int);
-	//void rotateYSliderValueChange(int);
-	//void rotateZSliderValueChange(int);
+	void rotateYSliderValueChange(int);
+	void rotateZSliderValueChange(int);
 	//void translateXSliderValueChange(int);
 	//void translateYSliderValueChange(int);
 	//void translateZSliderValueChange(int);
 	void rotateXSpinBoxValueChange(double);
-	//void rotateYSpinBoxValueChange(double);
-	//void rotateZSpinBoxValueChange(double);
+	void rotateYSpinBoxValueChange(double);
+	void rotateZSpinBoxValueChange(double);
 	//void translateXSpinBoxValueChange(double);
 	//void translateYSpinBoxValueChange(double);
 	//void translateZSpinBoxValueChange(double);

@@ -55,14 +55,14 @@ MainWindow::MainWindow(QMainWindow *parent)
 	connect(ui.initialTransformComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(initialTransformSet()));
 	connect(ui.initialTransformTableView->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(initialTransformValueChange()));
 	connect(ui.rotateXSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateXSliderValueChange(int)));
-	//connect(ui.rotateYSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateYSliderValueChange(int)));
-	//connect(ui.rotateZSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateZSliderValueChange(int)));
+	connect(ui.rotateYSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateYSliderValueChange(int)));
+	connect(ui.rotateZSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateZSliderValueChange(int)));
 	//connect(ui.translateXSlider, SIGNAL(valueChanged(int)), this, SLOT(translateXSliderValueChange(int)));
 	//connect(ui.translateYSlider, SIGNAL(valueChanged(int)), this, SLOT(translateYSliderValueChange(int)));
 	//connect(ui.translateZSlider, SIGNAL(valueChanged(int)), this, SLOT(translateZSliderValueChange(int)));
 	connect(ui.rotateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateXSpinBoxValueChange(double)));
-	//connect(ui.rotateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateYSpinBoxValueChange(double)));
-	//connect(ui.rotateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateZSpinBoxValueChange(double)));
+	connect(ui.rotateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateYSpinBoxValueChange(double)));
+	connect(ui.rotateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateZSpinBoxValueChange(double)));
 	//connect(ui.translateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateXSpinBoxValueChange(double)));
 	//connect(ui.translateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateYSpinBoxValueChange(double)));
 	//connect(ui.translateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateZSpinBoxValueChange(double)));
@@ -149,6 +149,14 @@ void MainWindow::initialTransformSet()
 	{
 		// set spinbox to editable
 		ui.initialTransformTableView->setEnabled(true);
+
+		// reset the spinbox
+		ui.rotateXSlider->setValue(0);
+		ui.rotateYSlider->setValue(0);
+		ui.rotateZSlider->setValue(0);
+		ui.translateXSlider->setValue(0);
+		ui.translateYSlider->setValue(0);
+		ui.translateZSlider->setValue(0);
 	}
 	else
 	{
@@ -262,10 +270,6 @@ void MainWindow::renderSource()
 
 	transformFilter->Update();
 	m_sourceMapper->SetInputData(transformFilter->GetOutput());
-	//std::cout <<
-	//	transformFilter->GetOutput()->GetPoint(0)[0] << "," <<
-	//	transformFilter->GetOutput()->GetPoint(0)[1] << "," <<
-	//	transformFilter->GetOutput()->GetPoint(0)[2] << std::endl;
 
 	ui.qvtkWidget->update();
 }
@@ -279,10 +283,6 @@ void MainWindow::renderTarget()
 	}
 
 	m_targetMapper->SetInputData(m_dataIO->GetTargetSurface());
-	//std::cout <<
-	//	transformFilter->GetOutput()->GetPoint(0)[0] << "," <<
-	//	transformFilter->GetOutput()->GetPoint(0)[1] << "," <<
-	//	transformFilter->GetOutput()->GetPoint(0)[2] << std::endl;
 
 	ui.qvtkWidget->update();
 }
@@ -352,6 +352,18 @@ void MainWindow::rotateXSliderValueChange(int value)
 	this->UpdateMatrixFromTransformWidgets();
 }
 
+void MainWindow::rotateYSliderValueChange(int value)
+{
+	ui.rotateYDoubleSpinBox->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::rotateZSliderValueChange(int value)
+{
+	ui.rotateZDoubleSpinBox->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
 void MainWindow::executeComplete()
 {
 	// disconnect related signal slots
@@ -379,5 +391,17 @@ void MainWindow::executeComplete()
 void MainWindow::rotateXSpinBoxValueChange(double value)
 {
 	ui.rotateXSlider->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::rotateYSpinBoxValueChange(double value)
+{
+	ui.rotateYSlider->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::rotateZSpinBoxValueChange(double value)
+{
+	ui.rotateZSlider->setValue(value);
 	this->UpdateMatrixFromTransformWidgets();
 }
