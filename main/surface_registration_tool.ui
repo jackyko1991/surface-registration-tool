@@ -35,10 +35,7 @@
    <string>Surface Registration Tool</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_15">
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_5"/>
-    </item>
+   <layout class="QHBoxLayout" name="horizontalLayout_17">
     <item>
      <widget class="QWidget" name="widget" native="true">
       <property name="minimumSize">
@@ -70,7 +67,7 @@
            <property name="minimumSize">
             <size>
              <width>40</width>
-             <height>0</height>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -96,6 +93,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="sourcePushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="text">
             <string>Browse</string>
            </property>
@@ -113,7 +116,7 @@
            <property name="minimumSize">
             <size>
              <width>40</width>
-             <height>0</height>
+             <height>24</height>
             </size>
            </property>
            <property name="text">
@@ -139,67 +142,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="targetPushButton">
-           <property name="text">
-            <string>Browse</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QLabel" name="outputLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Output Directory:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPlainTextEdit" name="outputPlainTextEdit">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>24</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="outputPushButton">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
              <height>24</height>
             </size>
            </property>
@@ -223,7 +168,7 @@
            <property name="minimumSize">
             <size>
              <width>90</width>
-             <height>0</height>
+             <height>24</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -251,6 +196,38 @@
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="identityPushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Identity</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="centroidPushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Centroid</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QComboBox" name="initialTransformComboBox">
            <property name="enabled">
             <bool>true</bool>
@@ -270,16 +247,6 @@
            <item>
             <property name="text">
              <string>User Matrix</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Identity</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Centroid</string>
             </property>
            </item>
            <item>
@@ -386,9 +353,18 @@
               <widget class="QDoubleSpinBox" name="rotateXDoubleSpinBox">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>60</width>
                  <height>24</height>
                 </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="suffix">
+                <string/>
                </property>
                <property name="minimum">
                 <double>-180.000000000000000</double>
@@ -447,9 +423,18 @@
               <widget class="QDoubleSpinBox" name="rotateYDoubleSpinBox">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>60</width>
                  <height>24</height>
                 </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="suffix">
+                <string/>
                </property>
                <property name="minimum">
                 <double>-180.000000000000000</double>
@@ -511,8 +496,14 @@
               <widget class="QDoubleSpinBox" name="rotateZDoubleSpinBox">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>60</width>
                  <height>24</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
                 </size>
                </property>
                <property name="minimum">
@@ -559,10 +550,10 @@
                 </size>
                </property>
                <property name="minimum">
-                <number>-180</number>
+                <number>-9999</number>
                </property>
                <property name="maximum">
-                <number>180</number>
+                <number>9999</number>
                </property>
                <property name="singleStep">
                 <number>0</number>
@@ -576,15 +567,21 @@
               <widget class="QDoubleSpinBox" name="translateXDoubleSpinBox">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>20</width>
                  <height>24</height>
                 </size>
                </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="minimum">
-                <double>-180.000000000000000</double>
+                <double>-9999.000000000000000</double>
                </property>
                <property name="maximum">
-                <double>180.000000000000000</double>
+                <double>9999.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -620,10 +617,10 @@
                 </size>
                </property>
                <property name="minimum">
-                <number>-180</number>
+                <number>-9999</number>
                </property>
                <property name="maximum">
-                <number>180</number>
+                <number>9999</number>
                </property>
                <property name="singleStep">
                 <number>0</number>
@@ -637,15 +634,21 @@
               <widget class="QDoubleSpinBox" name="translateYDoubleSpinBox">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>60</width>
                  <height>24</height>
                 </size>
                </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="minimum">
-                <double>-180.000000000000000</double>
+                <double>-9999.000000000000000</double>
                </property>
                <property name="maximum">
-                <double>180.000000000000000</double>
+                <double>9999.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -681,10 +684,10 @@
                 </size>
                </property>
                <property name="minimum">
-                <number>-180</number>
+                <number>-9999</number>
                </property>
                <property name="maximum">
-                <number>180</number>
+                <number>9999</number>
                </property>
                <property name="singleStep">
                 <number>0</number>
@@ -698,15 +701,21 @@
               <widget class="QDoubleSpinBox" name="translateZDoubleSpinBox">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
+                 <width>60</width>
                  <height>24</height>
                 </size>
                </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="minimum">
-                <double>-180.000000000000000</double>
+                <double>-9999.000000000000000</double>
                </property>
                <property name="maximum">
-                <double>180.000000000000000</double>
+                <double>9999.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -727,31 +736,99 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <layout class="QHBoxLayout" name="horizontalLayout_15">
          <item>
-          <widget class="QCheckBox" name="tfmCheckBox">
+          <widget class="QPushButton" name="distancePushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Update Inter-Surface Distance</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clearPushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Clear Log</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_16">
+         <item>
+          <widget class="QPushButton" name="saveTransformPushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="text">
             <string>Save Transform</string>
            </property>
-           <property name="checked">
-            <bool>true</bool>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="saveSurfacePushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Save Transformed Surface</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="sourceLabel_9">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>90</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Maxiumum ICP Steps:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="stlCheckBox">
-           <property name="text">
-            <string>Save STL</string>
+          <widget class="QSpinBox" name="maxIcpStepsSpinBox">
+           <property name="maximum">
+            <number>99999</number>
            </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="vtpCheckBox">
-           <property name="text">
-            <string>Save VTP</string>
+           <property name="value">
+            <number>100</number>
            </property>
           </widget>
          </item>
@@ -780,7 +857,7 @@
     </item>
     <item>
      <widget class="QWidget" name="widget_3" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout_6">
+      <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
         <widget class="QVTKWidget" name="qvtkWidget" native="true">
          <property name="sizePolicy">
@@ -799,9 +876,85 @@
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
-         <property name="sizeConstraint">
-          <enum>QLayout::SetFixedSize</enum>
-         </property>
+         <item>
+          <widget class="QLabel" name="outputLabel_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Source Opacity: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="sourceOpacitySlider">
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="pageStep">
+            <number>10</number>
+           </property>
+           <property name="value">
+            <number>100</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="outputLabel_3">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Target Opacity: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="targetOpacitySlider">
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>100</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
          <item>
           <spacer name="horizontalSpacer_2">
            <property name="orientation">

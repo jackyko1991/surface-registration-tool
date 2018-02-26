@@ -12,6 +12,7 @@
 #include <vtkMatrix4x4.h>
 #include "observe_error.h"
 #include <vtkCenterOfMass.h>
+#include "vtkDistancePolyDataFilter.h"
 
 class DataIO : public QObject
 {
@@ -20,6 +21,7 @@ class DataIO : public QObject
 public:
 	explicit DataIO(QObject* parent = 0);
 	~DataIO();
+	static void ComputeSurfaceDistance(vtkPolyData* source, vtkPolyData* target);
 
 	void SetSourcePath(QString);
 	void SetTargetPath(QString);

@@ -45,7 +45,6 @@ protected:
 private slots :
 	void browseSource();
 	void browseTarget();
-	void browseOutput();
 	void initialTransformSet();
 	void initialTransformValueChange();
 	void execute();
@@ -55,15 +54,23 @@ private slots :
 	void rotateXSliderValueChange(int);
 	void rotateYSliderValueChange(int);
 	void rotateZSliderValueChange(int);
-	//void translateXSliderValueChange(int);
-	//void translateYSliderValueChange(int);
-	//void translateZSliderValueChange(int);
+	void translateXSliderValueChange(int);
+	void translateYSliderValueChange(int);
+	void translateZSliderValueChange(int);
 	void rotateXSpinBoxValueChange(double);
 	void rotateYSpinBoxValueChange(double);
 	void rotateZSpinBoxValueChange(double);
-	//void translateXSpinBoxValueChange(double);
-	//void translateYSpinBoxValueChange(double);
-	//void translateZSpinBoxValueChange(double);
+	void translateXSpinBoxValueChange(double);
+	void translateYSpinBoxValueChange(double);
+	void translateZSpinBoxValueChange(double);
+	void resetCamera();
+	void identityInitialTransform();
+	void centroidInitialTransform();
+	void enableUserMatrix(bool);
+	void enableUI(bool);
+	void sourceOpacityChange();
+	void targetOpacityChange();
+	void clearLog();
 
 signals:
 	void loadDataComplete();

@@ -15,15 +15,16 @@ MainWindow::MainWindow(QMainWindow *parent)
 	m_targetActor = vtkActor::New();
 
 	m_sourceActor->SetMapper(m_sourceMapper);
-	m_sourceActor->GetProperty()->SetColor(1, 0, 0);
-	//m_sourceActor->GetProperty()->SetOpacity(0.7);
+	m_sourceActor->GetProperty()->SetColor(1, 1, 1);
 
 	m_targetActor->SetMapper(m_targetMapper);
-	m_targetActor->GetProperty()->SetColor(0, 1, 0);
-	//m_targetActor->GetProperty()->SetOpacity(0.7);
+	m_targetActor->GetProperty()->SetColor(1, 1, 1);
 
 	m_renderer->AddActor(m_sourceActor);
 	m_renderer->AddActor(m_targetActor);
+
+	// mapper setting
+	m_sourceMapper->SetScalarRange(5,5);
 
 	// initial transform matrix table
 	QStandardItemModel* model = new QStandardItemModel(4, 4);
@@ -51,23 +52,27 @@ MainWindow::MainWindow(QMainWindow *parent)
 	// Connect button signal slots
 	connect(ui.sourcePushButton, SIGNAL(clicked()), this, SLOT(browseSource()));
 	connect(ui.targetPushButton, SIGNAL(clicked()), this, SLOT(browseTarget()));
-	connect(ui.outputPushButton, SIGNAL(clicked()), this, SLOT(browseOutput()));
 	connect(ui.initialTransformComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(initialTransformSet()));
 	connect(ui.initialTransformTableView->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(initialTransformValueChange()));
 	connect(ui.rotateXSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateXSliderValueChange(int)));
 	connect(ui.rotateYSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateYSliderValueChange(int)));
 	connect(ui.rotateZSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateZSliderValueChange(int)));
-	//connect(ui.translateXSlider, SIGNAL(valueChanged(int)), this, SLOT(translateXSliderValueChange(int)));
-	//connect(ui.translateYSlider, SIGNAL(valueChanged(int)), this, SLOT(translateYSliderValueChange(int)));
-	//connect(ui.translateZSlider, SIGNAL(valueChanged(int)), this, SLOT(translateZSliderValueChange(int)));
+	connect(ui.translateXSlider, SIGNAL(valueChanged(int)), this, SLOT(translateXSliderValueChange(int)));
+	connect(ui.translateYSlider, SIGNAL(valueChanged(int)), this, SLOT(translateYSliderValueChange(int)));
+	connect(ui.translateZSlider, SIGNAL(valueChanged(int)), this, SLOT(translateZSliderValueChange(int)));
 	connect(ui.rotateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateXSpinBoxValueChange(double)));
 	connect(ui.rotateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateYSpinBoxValueChange(double)));
 	connect(ui.rotateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(rotateZSpinBoxValueChange(double)));
-	//connect(ui.translateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateXSpinBoxValueChange(double)));
-	//connect(ui.translateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateYSpinBoxValueChange(double)));
-	//connect(ui.translateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateZSpinBoxValueChange(double)));
-
+	connect(ui.translateXDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateXSpinBoxValueChange(double)));
+	connect(ui.translateYDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateYSpinBoxValueChange(double)));
+	connect(ui.translateZDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(translateZSpinBoxValueChange(double)));
+	connect(ui.resetPushButton, SIGNAL(clicked()), this, SLOT(resetCamera()));
+	connect(ui.identityPushButton, SIGNAL(clicked()), this, SLOT(identityInitialTransform()));
+	connect(ui.centroidPushButton, SIGNAL(clicked()), this, SLOT(centroidInitialTransform()));
 	connect(ui.executePushButton, SIGNAL(clicked()), this, SLOT(execute()));
+	connect(ui.sourceOpacitySlider, SIGNAL(valueChanged(int)), this, SLOT(sourceOpacityChange()));
+	connect(ui.targetOpacitySlider, SIGNAL(valueChanged(int)), this, SLOT(targetOpacityChange()));
+	connect(ui.clearPushButton, SIGNAL(clicked()), this, SLOT(clearLog()));
 }
 
 void MainWindow::browseSource()
@@ -80,6 +85,9 @@ void MainWindow::browseSource()
 		ui.sourcePlainTextEdit->setPlainText(sourceFile);
 		m_dataIO->SetSourcePath(ui.sourcePlainTextEdit->toPlainText());
 
+		// read status print out
+		ui.textBrowser->append("Reading source file: " + ui.sourcePlainTextEdit->toPlainText());
+
 		// connect read file signal slots
 		connect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
 
@@ -91,6 +99,7 @@ void MainWindow::browseSource()
 			m_renderer->ResetCamera();
 		}
 	}
+	ui.textBrowser->append("===================================");
 }
 
 MainWindow::~MainWindow()
@@ -117,6 +126,9 @@ void MainWindow::browseTarget()
 		ui.targetPlainTextEdit->setPlainText(targetFile);
 		m_dataIO->SetTargetPath(ui.targetPlainTextEdit->toPlainText());
 
+		// read status print out
+		ui.textBrowser->append("Reading target file: " + ui.targetPlainTextEdit->toPlainText());
+
 		// connect read file signal slots
 		connect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
 
@@ -128,60 +140,34 @@ void MainWindow::browseTarget()
 			m_renderer->ResetCamera();
 		}
 	}
-}
-
-void MainWindow::browseOutput()
-{
-	QString outputFolder = QFileDialog::getExistingDirectory(this,
-		tr("Set Output Direcotry"), ui.outputPlainTextEdit->toPlainText());
-
-	if (!outputFolder.isNull())
-	{
-		ui.outputPlainTextEdit->setPlainText(outputFolder);
-		
-	}
+	ui.textBrowser->append("===================================");
 }
 
 void MainWindow::initialTransformSet()
 {
-	if (ui.initialTransformComboBox->currentText() == "Identity" || 
-		ui.initialTransformComboBox->currentText() == "User Matrix")
+	if (ui.initialTransformComboBox->currentText() == "Pricipal Component")
 	{
-		// set spinbox to editable
-		ui.initialTransformTableView->setEnabled(true);
-
-		// reset the spinbox
-		ui.rotateXSlider->setValue(0);
-		ui.rotateYSlider->setValue(0);
-		ui.rotateZSlider->setValue(0);
-		ui.translateXSlider->setValue(0);
-		ui.translateYSlider->setValue(0);
-		ui.translateZSlider->setValue(0);
+		// set spinbox to non editable
+		enableUserMatrix(false);
 	}
 	else
 	{
-		// set spinbox to non editable
-		ui.initialTransformTableView->setEnabled(false);
-	}
+		// set spinbox to editable
+		enableUserMatrix(true);
 
-	if (ui.initialTransformComboBox->currentText() == "Identity")
-	{
-		for (int row = 0; row < 4; ++row) {
-			for (int column = 0; column < 4; ++column) {
-				QModelIndex index = ui.initialTransformTableView->model()->index(row, column, QModelIndex());
-				if (column == row)
-					ui.initialTransformTableView->model()->setData(index, QVariant(1.0));
-				else
-					ui.initialTransformTableView->model()->setData(index, QVariant(0.0));
-			}
-		}
+		//// reset the spinbox
+		//ui.rotateXSlider->setValue(0);
+		//ui.rotateYSlider->setValue(0);
+		//ui.rotateZSlider->setValue(0);
+		//ui.translateXSlider->setValue(0);
+		//ui.translateYSlider->setValue(0);
+		//ui.translateZSlider->setValue(0);
 	}
 }
 
 void MainWindow::initialTransformValueChange()
 {
-	if (ui.initialTransformComboBox->currentText() == "Identity")
-		ui.initialTransformComboBox->setCurrentText("User Matrix");
+	ui.initialTransformComboBox->setCurrentText("User Matrix");
 
 	for (int row = 0; row < 4; row++)
 	{
@@ -197,59 +183,64 @@ void MainWindow::initialTransformValueChange()
 
 void MainWindow::execute()
 {
-	//// lock ui
-	//ui.sourcePlainTextEdit->setEnabled(false);
-	//ui.sourcePushButton->setEnabled(false);
-	//ui.targetPlainTextEdit->setEnabled(false);
-	//ui.targetPushButton->setEnabled(false);
-	//ui.outputPlainTextEdit->setEnabled(false);
-	//ui.outputPushButton->setEnabled(false);
-	//ui.initialTransformComboBox->setEnabled(false);
-	//ui.initialTransformTableView->setEnabled(false);
-	//ui.tfmCheckBox->setEnabled(false);
-	//ui.stlCheckBox->setEnabled(false);
-	//ui.vtpCheckBox->setEnabled(false);
-	//ui.executePushButton->setEnabled(false);
+	// check both source and target exists
+	if (!(m_dataIO->GetSourceSurface()->GetNumberOfCells() > 0 &&
+		m_dataIO->GetSourceSurface()->GetNumberOfPoints() > 0 &&
+		m_dataIO->GetTargetSurface()->GetNumberOfCells() > 0 &&
+		m_dataIO->GetTargetSurface()->GetNumberOfPoints() > 0))
+	{
+		return;
+	}
 
-	//// clear log
-	//ui.textBrowser->clear();
+	// lock ui
+	enableUI(false);
 
-	//// reset progress bar
-	//ui.progressBar->reset();
+	// reset progress bar
+	ui.progressBar->setValue(0);
 
-	//// connect execute signal slots
-	//connect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
-	//connect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
+	// log start registration
+	ui.textBrowser->append("Registration Starts...");
+	if (ui.initialTransformComboBox->currentText() == "User Matrix")
+	{
+		ui.textBrowser->append("Initial Transform by User Matrix:");
+		ui.textBrowser->append(
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 0)) + ", " + 
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 1)) + ", " +
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 2)) + ", " +
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 3)));
+		ui.textBrowser->append(
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 0)) + ", " +
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 1)) + ", " +
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 2)) + ", " +
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 3)));
+		ui.textBrowser->append(
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 0)) + ", " +
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 1)) + ", " +
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 2)) + ", " +
+			QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 3)));
+	}
+	else
+	{
+		ui.textBrowser->append("Initial Transform by Principal Component Analysis");
+	}
 
-	//// Instantiate the watcher to unlock
-	//m_watcher = new QFutureWatcher<void>;
-	//connect(m_watcher, SIGNAL(finished()), this, SLOT(executeComplete()));
+	// Instantiate the watcher to unlock
+	m_watcher = new QFutureWatcher<void>;
+	connect(m_watcher, SIGNAL(finished()), this, SLOT(executeComplete()));
 
-	//// use QtConcurrent to run the registration on a new thread;
-	//QFuture<void> future = QtConcurrent::run(this,&MainWindow::executeRun);
-	//m_watcher->setFuture(future);
+	// use QtConcurrent to run the registration on a new thread;
+	QFuture<void> future = QtConcurrent::run(this,&MainWindow::executeRun);
+	m_watcher->setFuture(future);
 }
 
 void MainWindow::executeRun()
 {
-	//qDebug() << "Start load data...";
-
-	//m_dataIO->SetSourcePath(ui.sourcePlainTextEdit->toPlainText());
-	//m_dataIO->SetTargetPath(ui.targetPlainTextEdit->toPlainText());
-	//bool readStatus = m_dataIO->Read();
-	//if (readStatus)
-	//{
-	//	qDebug() << "read file fail";
-	//	return;
-	//}
-
-	//qDebug() << "read file success";
-
-	//// registration
-	//SurfaceRegistration surfaceReg;
-	//surfaceReg.SetInitialTransformType(SurfaceRegistration::InitialTransformEnum(ui.initialTransformComboBox->currentIndex()));
-	//surfaceReg.Update();
-
+	// registration
+	SurfaceRegistration surfaceReg;
+	surfaceReg.SetDataIO(m_dataIO);
+	surfaceReg.SetMaximumIterationSteps(ui.maxIcpStepsSpinBox->value());
+	surfaceReg.SetInitialTransformType(SurfaceRegistration::InitialTransformEnum(ui.initialTransformComboBox->currentIndex()));
+	surfaceReg.Update();
 }
 
 void MainWindow::renderSource()
@@ -260,15 +251,14 @@ void MainWindow::renderSource()
 		return;
 	}
 
-	m_dataIO->GetInitialTransform()->Print(std::cout);
 	auto transformMat = m_dataIO->GetInitialTransform();
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	transform->SetMatrix(transformMat);
 	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 	transformFilter->SetTransform(transform);
 	transformFilter->SetInputData(m_dataIO->GetSourceSurface());
-
 	transformFilter->Update();
+
 	m_sourceMapper->SetInputData(transformFilter->GetOutput());
 
 	ui.qvtkWidget->update();
@@ -290,23 +280,21 @@ void MainWindow::renderTarget()
 void MainWindow::UpdateMatrixFromTransformWidgets()
 {
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-	std::cout
-		<< m_dataIO->GetSourceCentroid()[0] << ","
-		<< m_dataIO->GetSourceCentroid()[1] << ","
-		<< m_dataIO->GetSourceCentroid()[2] << std::endl;
-	transform->Translate(m_dataIO->GetSourceCentroid()[0], m_dataIO->GetSourceCentroid()[1], m_dataIO->GetSourceCentroid()[2]);
+	transform->PostMultiply();
+
+	transform->Translate(ui.translateXDoubleSpinBox->value(), ui.translateYDoubleSpinBox->value(), ui.translateZDoubleSpinBox->value());
+	transform->Translate(
+		-(m_dataIO->GetSourceCentroid()[0] + ui.translateXDoubleSpinBox->value()), 
+		-(m_dataIO->GetSourceCentroid()[1] + ui.translateYDoubleSpinBox->value()), 
+		-(m_dataIO->GetSourceCentroid()[2] + ui.translateZDoubleSpinBox->value()));
 	transform->RotateX(ui.rotateXDoubleSpinBox->value());
 	transform->RotateY(ui.rotateYDoubleSpinBox->value());
 	transform->RotateZ(ui.rotateZDoubleSpinBox->value());
-	transform->Translate(-m_dataIO->GetSourceCentroid()[0], -m_dataIO->GetSourceCentroid()[1], -m_dataIO->GetSourceCentroid()[2]);
 
-	std::cout
-		<< m_dataIO->GetSourceCentroid()[0] << ","
-		<< m_dataIO->GetSourceCentroid()[1] << ","
-		<< m_dataIO->GetSourceCentroid()[2] << std::endl;
-
-	transform->GetMatrix()->Print(std::cout);
-	std::cout << "===================" << std::endl;
+	transform->Translate(
+		m_dataIO->GetSourceCentroid()[0] + ui.translateXDoubleSpinBox->value(), 
+		m_dataIO->GetSourceCentroid()[1] + ui.translateYDoubleSpinBox->value(),
+		m_dataIO->GetSourceCentroid()[2] + ui.translateZDoubleSpinBox->value());
 
 	// update ui matrix
 	for (int row = 0; row < 4; ++row) {
@@ -331,6 +319,9 @@ void MainWindow::sourceFileReadStatusPrint(bool status)
 	{
 		ui.textBrowser->append("Source surface read success");
 	}
+
+	// disconnect related signal slots
+	disconnect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
 }
 
 void MainWindow::targetFileReadStatusPrint(bool status)
@@ -344,6 +335,9 @@ void MainWindow::targetFileReadStatusPrint(bool status)
 	{
 		ui.textBrowser->append("Target surface read success");
 	}
+
+	// disconnect related signal slots
+	disconnect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
 }
 
 void MainWindow::rotateXSliderValueChange(int value)
@@ -364,27 +358,67 @@ void MainWindow::rotateZSliderValueChange(int value)
 	this->UpdateMatrixFromTransformWidgets();
 }
 
+void MainWindow::translateXSliderValueChange(int value)
+{
+	ui.translateXDoubleSpinBox->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::translateYSliderValueChange(int value)
+{
+	ui.translateYDoubleSpinBox->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::translateZSliderValueChange(int value)
+{
+	ui.translateZDoubleSpinBox->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
 void MainWindow::executeComplete()
 {
-	// disconnect related signal slots
-	disconnect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
-	disconnect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
+	// log the transform
+	ui.textBrowser->append("");
+	ui.textBrowser->append("Registration Transform:");
+	ui.textBrowser->append(
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(0, 0)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(0, 1)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(0, 2)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(0, 3)));
+	ui.textBrowser->append(
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(1, 0)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(1, 1)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(1, 2)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(1, 3)));
+	ui.textBrowser->append(
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(2, 0)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(2, 1)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(2, 2)) + ", " +
+		QString::number(m_dataIO->GetRegistartionTransform()->GetElement(2, 3)));
+	ui.textBrowser->append("===================================");
 
-	qDebug() << "Execute complete";
+	// update matrix table
+	vtkSmartPointer<vtkMatrix4x4> finalTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+	vtkMatrix4x4::Multiply4x4(m_dataIO->GetRegistartionTransform(), m_dataIO->GetInitialTransform(), finalTransform);
+
+	for (int row = 0; row < 4; ++row) {
+		for (int column = 0; column < 4; ++column) {
+			QModelIndex index = ui.initialTransformTableView->model()->index(row, column, QModelIndex());
+			ui.initialTransformTableView->model()->setData(index, QVariant(finalTransform->GetElement(row, column)));
+		}
+	}
+
+	//// calcualte distance
+	//
+
+	//DataIO::ComputeSurfaceDistance(transformFilter->GetOutput(), m_dataIO->GetTargetSurface());
+	//m_sourceMapper->SetColorModeToMapScalars();
+
 
 	// unlock ui
-	ui.sourcePlainTextEdit->setEnabled(true);
-	ui.sourcePushButton->setEnabled(true);
-	ui.targetPlainTextEdit->setEnabled(true);
-	ui.targetPushButton->setEnabled(true);
-	ui.outputPlainTextEdit->setEnabled(true);
-	ui.outputPushButton->setEnabled(true);
-	ui.initialTransformComboBox->setEnabled(true);
-	ui.initialTransformTableView->setEnabled(true);
-	ui.tfmCheckBox->setEnabled(true);
-	ui.stlCheckBox->setEnabled(true);
-	ui.vtpCheckBox->setEnabled(true);
-	ui.executePushButton->setEnabled(true);
+	enableUI(true);
+
 	delete m_watcher;
 }
 
@@ -404,4 +438,120 @@ void MainWindow::rotateZSpinBoxValueChange(double value)
 {
 	ui.rotateZSlider->setValue(value);
 	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::translateXSpinBoxValueChange(double value)
+{
+	ui.translateXSlider->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::translateYSpinBoxValueChange(double value)
+{
+	ui.translateYSlider->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::translateZSpinBoxValueChange(double value)
+{
+	ui.translateZSlider->setValue(value);
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::resetCamera()
+{
+	m_renderer->ResetCamera();
+	ui.qvtkWidget->update();
+}
+
+void MainWindow::identityInitialTransform()
+{
+	ui.rotateXDoubleSpinBox->setValue(0);
+	ui.rotateYDoubleSpinBox->setValue(0);
+	ui.rotateZDoubleSpinBox->setValue(0);
+	ui.translateXDoubleSpinBox->setValue(0);
+	ui.translateYDoubleSpinBox->setValue(0);
+	ui.translateZDoubleSpinBox->setValue(0);
+
+	this->UpdateMatrixFromTransformWidgets();
+}
+
+void MainWindow::centroidInitialTransform()
+{
+	ui.translateXDoubleSpinBox->setValue(m_dataIO->GetTargetCentroid()[0]- m_dataIO->GetSourceCentroid()[0]);
+	ui.translateYDoubleSpinBox->setValue(m_dataIO->GetTargetCentroid()[1] -m_dataIO->GetSourceCentroid()[1]);
+	ui.translateZDoubleSpinBox->setValue(m_dataIO->GetTargetCentroid()[2] -m_dataIO->GetSourceCentroid()[2]);
+}
+
+void MainWindow::enableUserMatrix(bool enable)
+{
+	ui.initialTransformTableView->setEnabled(enable);
+	ui.identityPushButton->setEnabled(enable);
+	ui.centroidPushButton->setEnabled(enable);
+	ui.rotateXSlider->setEnabled(enable);
+	ui.rotateYSlider->setEnabled(enable);
+	ui.rotateZSlider->setEnabled(enable);
+	ui.translateXSlider->setEnabled(enable);
+	ui.translateYSlider->setEnabled(enable);
+	ui.translateZSlider->setEnabled(enable);
+	ui.rotateXDoubleSpinBox->setEnabled(enable);
+	ui.rotateYDoubleSpinBox->setEnabled(enable);
+	ui.rotateZDoubleSpinBox->setEnabled(enable);
+	ui.translateXDoubleSpinBox->setEnabled(enable);
+	ui.translateYDoubleSpinBox->setEnabled(enable);
+	ui.translateZDoubleSpinBox->setEnabled(enable);
+}
+
+void MainWindow::enableUI(bool enable)
+{
+	ui.sourcePlainTextEdit->setEnabled(enable);
+	ui.sourcePushButton->setEnabled(enable);
+	ui.targetPlainTextEdit->setEnabled(enable);
+	ui.targetPushButton->setEnabled(enable);
+	ui.initialTransformComboBox->setEnabled(enable);
+	if (ui.initialTransformComboBox->currentText() == "Pricipal Component")
+	{
+		ui.initialTransformTableView->setEnabled(false);
+	}
+	else
+	{
+		ui.initialTransformTableView->setEnabled(enable);
+	}
+	ui.executePushButton->setEnabled(enable);
+	ui.identityPushButton->setEnabled(enable);
+	ui.centroidPushButton->setEnabled(enable);
+	ui.rotateXSlider->setEnabled(enable);
+	ui.rotateYSlider->setEnabled(enable);
+	ui.rotateZSlider->setEnabled(enable);
+	ui.translateXSlider->setEnabled(enable);
+	ui.translateYSlider->setEnabled(enable);
+	ui.translateZSlider->setEnabled(enable);
+	ui.rotateXDoubleSpinBox->setEnabled(enable);
+	ui.rotateYDoubleSpinBox->setEnabled(enable);
+	ui.rotateZDoubleSpinBox->setEnabled(enable);
+	ui.translateXDoubleSpinBox->setEnabled(enable);
+	ui.translateYDoubleSpinBox->setEnabled(enable);
+	ui.translateZDoubleSpinBox->setEnabled(enable);
+	ui.distancePushButton->setEnabled(enable);
+	ui.clearPushButton->setEnabled(enable);
+	ui.saveTransformPushButton->setEnabled(enable);
+	ui.saveSurfacePushButton->setEnabled(enable);
+	ui.maxIcpStepsSpinBox->setEnabled(enable);
+}
+
+void MainWindow::sourceOpacityChange()
+{
+	m_sourceActor->GetProperty()->SetOpacity(ui.sourceOpacitySlider->value()*1.0 / 100.0);
+	ui.qvtkWidget->update();
+}
+
+void MainWindow::targetOpacityChange()
+{
+	m_targetActor->GetProperty()->SetOpacity(ui.targetOpacitySlider->value()*1.0 / 100.0);
+	ui.qvtkWidget->update();
+}
+
+void MainWindow::clearLog()
+{
+	ui.textBrowser->clear();
 }

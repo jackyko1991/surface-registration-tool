@@ -83,7 +83,7 @@ bool DataIO::ReadTarget()
 	if (m_targetFile.suffix() == "vtp" || m_targetFile.suffix() == "VTP")
 	{
 		vtkSmartPointer<vtkXMLPolyDataReader> reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
-		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
+		reader->SetFileName(m_targetFile.absoluteFilePath().toStdString().c_str());
 		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
 		reader->Update();
 
@@ -102,7 +102,7 @@ bool DataIO::ReadTarget()
 	else if (m_targetFile.suffix() == "stl" || m_targetFile.suffix() == "STL")
 	{
 		vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
-		reader->SetFileName(m_sourceFile.absoluteFilePath().toStdString().c_str());
+		reader->SetFileName(m_targetFile.absoluteFilePath().toStdString().c_str());
 		reader->AddObserver(vtkCommand::ErrorEvent, errorObserver);
 		reader->Update();
 		if (errorObserver->GetError())
@@ -138,6 +138,11 @@ bool DataIO::ReadTarget()
 vtkMatrix4x4 * DataIO::GetInitialTransform()
 {
 	return m_initialTransform;
+}
+
+vtkMatrix4x4 * DataIO::GetRegistartionTransform()
+{
+	return m_registrationTransform;
 }
 
 bool DataIO::ReadSource()
@@ -212,4 +217,15 @@ bool DataIO::ReadSource()
 std::string DataIO::GetErrorMessage()
 {
 	return m_errorMessage;
+}
+
+void DataIO::ComputeSurfaceDistance(vtkPolyData * source, vtkPolyData * target)
+{
+	vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
+	distanceFilter->SetInputData(0, source);
+	distanceFilter->SetInputData(1, target);
+	std::cout << "distance filter start" << std::endl;
+	distanceFilter->Update();
+	std::cout << "distance filter finish" << std::endl;
+	source->DeepCopy(distanceFilter->GetOutput());
 }
