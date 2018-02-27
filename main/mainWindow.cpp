@@ -29,7 +29,7 @@ MainWindow::MainWindow(QMainWindow *parent)
 	// scalar bar
 	vtkSmartPointer<vtkScalarBarActor> scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
 	scalarBar->SetLookupTable(m_sourceMapper->GetLookupTable());
-	scalarBar->SetTitle("Error (mm)");
+	scalarBar->SetTitle("Distance (mm)");
 	scalarBar->SetNumberOfLabels(4);
 	scalarBar->SetHeight(0.4);
 	scalarBar->SetWidth(0.07);
@@ -621,7 +621,7 @@ void MainWindow::distanceComplete()
 	}
 	sum = sum / num;
 
-	ui.textBrowser->append("RMS Error = " + QString::number(sqrt(sum)) + "mm");
+	ui.textBrowser->append("RMS Distance = " + QString::number(sqrt(sum)) + "mm");
 	ui.textBrowser->append("===================================");
 
 	// unlock ui
