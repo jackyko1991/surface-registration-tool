@@ -39,9 +39,14 @@ void DataIO::SetTargetPath(QString targetPath)
 	m_targetFile.setFile(targetPath);
 }
 
-void DataIO::SetOutputDir(QString outputDir)
+void DataIO::SetInitialTransformSavePath(QString transformSavePath)
 {
-	m_outputDir.setFile(outputDir);
+	m_initialTransformSaveFile.setFile(transformSavePath);
+}
+
+void DataIO::SetRegistrationTransformSavePath(QString transformSavePath)
+{
+	m_registrationTransformSaveFile.setFile(transformSavePath);
 }
 
 vtkPolyData * DataIO::GetSourceSurface()
@@ -266,4 +271,42 @@ void DataIO::ComputeSurfaceDistance(vtkPolyData * source, vtkPolyData * target)
 	distanceFilter->Update();
 	std::cout << "distance filter finish" << std::endl;
 	source->DeepCopy(distanceFilter->GetOutput());
+}
+
+void DataIO::WriteInitialTransform()
+{
+	QFile data(m_initialTransformSaveFile.absoluteFilePath());
+	if (data.open(QFile::WriteOnly | QFile::Truncate))
+	{
+		QTextStream output(&data);
+		for (int row = 0; row < 4; row++)
+		{
+			for (int column = 0; column < 4; column++)
+			{
+				if (column == 3)
+					output << m_initialTransform->GetElement(row, column) << "\r\n";
+				else
+					output << m_initialTransform->GetElement(row, column) << ",";
+			}
+		}
+	}
+}
+
+void DataIO::WriteRegistrationTransform()
+{
+	QFile data(m_registrationTransformSaveFile.absoluteFilePath());
+	if (data.open(QFile::WriteOnly | QFile::Truncate))
+	{
+		QTextStream output(&data);
+		for (int row = 0; row < 4; row++)
+		{
+			for (int column = 0; column < 4; column++)
+			{
+				if (column == 3)
+					output << m_registrationTransform->GetElement(row, column) << "\r\n";
+				else
+					output << m_registrationTransform->GetElement(row, column) << ",";
+			}
+		}
+	}
 }

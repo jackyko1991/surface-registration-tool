@@ -20,11 +20,29 @@ MainWindow::MainWindow(QMainWindow *parent)
 	m_targetActor->SetMapper(m_targetMapper);
 	m_targetActor->GetProperty()->SetColor(1, 1, 1);
 
+	// mapper setting
+	m_sourceMapper->SetScalarRange(0, 5);
+	m_sourceMapper->GetLookupTable()->Build();
+	m_sourceMapper->ScalarVisibilityOff();
+	m_targetMapper->ScalarVisibilityOff();
+
+	// scalar bar
+	vtkSmartPointer<vtkScalarBarActor> scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+	scalarBar->SetLookupTable(m_sourceMapper->GetLookupTable());
+	scalarBar->SetTitle("Error (mm)");
+	scalarBar->SetNumberOfLabels(4);
+	scalarBar->SetHeight(0.4);
+	scalarBar->SetWidth(0.07);
+	scalarBar->SetUnconstrainedFontSize(true);
+	scalarBar->GetTitleTextProperty()->SetFontSize(14);
+	scalarBar->GetLabelTextProperty()->SetFontSize(12);
+	scalarBar->SetPosition(0.88, 0.03);
+
 	m_renderer->AddActor(m_sourceActor);
 	m_renderer->AddActor(m_targetActor);
+	m_renderer->AddActor(scalarBar);
 
-	// mapper setting
-	m_sourceMapper->SetScalarRange(5,5);
+	ui.qvtkWidget->update();
 
 	// initial transform matrix table
 	QStandardItemModel* model = new QStandardItemModel(4, 4);
@@ -73,6 +91,8 @@ MainWindow::MainWindow(QMainWindow *parent)
 	connect(ui.targetOpacitySlider, SIGNAL(valueChanged(int)), this, SLOT(targetOpacityChange()));
 	connect(ui.clearPushButton, SIGNAL(clicked()), this, SLOT(clearLog()));
 	connect(ui.inversePushButton, SIGNAL(clicked()), this, SLOT(inverseMatrix()));
+	connect(ui.distancePushButton, SIGNAL(clicked()), this, SLOT(updateDistance()));
+	connect(ui.saveTransformPushButton, SIGNAL(clicked()), this, SLOT(saveTransform()));
 }
 
 void MainWindow::browseSource()
@@ -384,13 +404,6 @@ void MainWindow::executeComplete()
 		}
 	}
 
-	//// calcualte distance
-	//
-
-	//DataIO::ComputeSurfaceDistance(transformFilter->GetOutput(), m_dataIO->GetTargetSurface());
-	//m_sourceMapper->SetColorModeToMapScalars();
-
-
 	// unlock ui
 	enableUI(true);
 
@@ -528,6 +541,8 @@ void MainWindow::clearLog()
 
 void MainWindow::inverseMatrix()
 {
+	m_dataIO->GetInitialTransform()->Invert();
+
 	disconnect(ui.initialTransformTableView->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(initialTransformValueChange()));
 
 	for (int row = 0; row < 4; row++)
@@ -558,4 +573,78 @@ void MainWindow::readFileComplete()
 	enableUI(true);
 
 	delete m_ioWatcher;
+}
+
+void MainWindow::updateDistance()
+{
+	// check both source and target exists
+	if (!(m_dataIO->GetSourceSurface()->GetNumberOfCells() > 0 &&
+		m_dataIO->GetSourceSurface()->GetNumberOfPoints() > 0 &&
+		m_dataIO->GetTargetSurface()->GetNumberOfCells() > 0 &&
+		m_dataIO->GetTargetSurface()->GetNumberOfPoints() > 0))
+	{
+		return;
+	}
+
+	// lock ui
+	enableUI(false);
+
+	// log start update surface distance
+	ui.textBrowser->append("Calculate Inter-Surface Distance Starts...");
+
+	// Instantiate the watcher to unlock
+	m_executeWatcher = new QFutureWatcher<void>;
+	connect(m_executeWatcher, SIGNAL(finished()), this, SLOT(distanceComplete()));
+
+	// use QtConcurrent to run the registration on a new thread;
+	QFuture<void> future = QtConcurrent::run(this, &MainWindow::distanceRun);
+	m_executeWatcher->setFuture(future);
+}
+
+void MainWindow::distanceRun()
+{
+	DataIO::ComputeSurfaceDistance(m_sourceMapper->GetInput(), m_dataIO->GetTargetSurface());
+}
+
+void MainWindow::distanceComplete()
+{
+	// log the rms error
+	ui.textBrowser->append("Distance Calculation Complete");
+	vtkDataArray *array = m_sourceMapper->GetInput()->GetPointData()->GetScalars();
+
+	double sum = 0;
+	int num = array->GetNumberOfTuples();
+	for (int id = 0; id < num; ++id) {
+		double d = array->GetTuple1(id);
+		d = d*d;
+		sum += d;
+	}
+	sum = sum / num;
+
+	ui.textBrowser->append("RMS Error = " + QString::number(sqrt(sum)) + "mm");
+	ui.textBrowser->append("===================================");
+
+	// unlock ui
+	enableUI(true);
+
+	m_sourceMapper->ScalarVisibilityOn();
+	ui.qvtkWidget->update();
+
+	delete m_executeWatcher;
+}
+
+void MainWindow::saveTransform()
+{
+	QString saveTransformFile = QFileDialog::getSaveFileName(this,
+		tr("Save Transform"), QFileInfo(ui.sourcePlainTextEdit->toPlainText()).absoluteDir().absolutePath()+"./transform.csv", tr("Transform Files (*.csv)"));
+
+	if (!saveTransformFile.isNull())
+	{
+		ui.textBrowser->append("Saving transformation matrix: " + saveTransformFile);
+		m_dataIO->SetInitialTransformSavePath(saveTransformFile);
+		m_dataIO->WriteInitialTransform();
+
+		ui.textBrowser->append("Transformation matrix save success");
+		ui.textBrowser->append("===================================");
+	}
 }

@@ -839,6 +839,11 @@
              <string>PCA/ICP</string>
             </property>
            </item>
+           <item>
+            <property name="text">
+             <string>ITK/ICP</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>

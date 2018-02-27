@@ -14,6 +14,8 @@
 #include <vtkCenterOfMass.h>
 #include "vtkDistancePolyDataFilter.h"
 #include <vtkPolyDataReader.h>
+#include <QFile>
+#include <QTextStream>
 
 class DataIO : public QObject
 {
@@ -26,21 +28,20 @@ public:
 
 	void SetSourcePath(QString);
 	void SetTargetPath(QString);
-	void SetOutputDir(QString);
+	void SetInitialTransformSavePath(QString);
+	void SetRegistrationTransformSavePath(QString);
 	vtkPolyData* GetSourceSurface();
 	vtkPolyData* GetTargetSurface();
 	vtkPolyData* GetOutputSurface();
 	double* GetSourceCentroid();
 	double* GetTargetCentroid();
-	void SetOutputSurface(vtkPolyData*);
-	void WriteTransformedSTL(bool);
-	void WriteTransformedVTP(bool);
-	void WriteTransformMatrix(bool);
+	void WriteTransformedSurface();
+	void WriteInitialTransform();
+	void WriteRegistrationTransform();
 	vtkMatrix4x4* GetInitialTransform();
 	vtkMatrix4x4* GetRegistartionTransform();
 	bool ReadSource();
 	bool ReadTarget();
-	void Write();
 	std::string GetErrorMessage();
 
 public slots:
@@ -53,7 +54,8 @@ signals:
 private:
 	QFileInfo m_sourceFile;
 	QFileInfo m_targetFile;
-	QFileInfo m_outputDir;
+	QFileInfo m_initialTransformSaveFile;
+	QFileInfo m_registrationTransformSaveFile;
 	bool m_writeTransformedSTL = false;
 	bool m_writeTransformedVTP = false;
 	bool m_writeTransformedMatrix = false;

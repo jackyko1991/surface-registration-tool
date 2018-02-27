@@ -26,6 +26,12 @@
 #include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkProperty.h"
+#include "vtkScalarBarActor.h"
+#include "vtkDataArray.h"
+#include "vtkPointData.h"
+#include "vtkLookupTable.h"
+#include "vtkProperty2D.h"
+#include "vtkTextProperty.h"
 
 #include <qDebug>
 #include <chrono>
@@ -72,6 +78,10 @@ private slots :
 	void clearLog();
 	void inverseMatrix();
 	void readFileComplete();
+	void updateDistance();
+	void distanceRun();
+	void distanceComplete();
+	void saveTransform();
 
 signals:
 	void loadDataComplete();

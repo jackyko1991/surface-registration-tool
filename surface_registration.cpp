@@ -41,6 +41,9 @@ void SurfaceRegistration::Update()
 	case PCAICP:
 		this->PCAICPRegistration(transformFilter->GetOutput());
 		break;
+	case ITKICP:
+		this->ITKICPRegistration(transformFilter->GetOutput());
+		break;
 	}
 }
 
@@ -75,5 +78,17 @@ void SurfaceRegistration::PCAICPRegistration(vtkPolyData* source)
 	m_dataIO->GetRegistartionTransform()->DeepCopy(transform->GetMatrix());
 
 	emit RegistrationComplete();
+}
 
+void SurfaceRegistration::ITKICPRegistration(vtkPolyData* source)
+{
+	vtkSmartPointer<vtkITKIterativeCloestPoint> transform = vtkSmartPointer<vtkITKIterativeCloestPoint>::New();
+	transform->SetSource(source->GetPoints());
+	transform->SetTarget(m_dataIO->GetTargetSurface()->GetPoints());
+	transform->SetNumberOfIterations(m_maxIterSteps);
+	transform->Update();
+
+	m_dataIO->GetRegistartionTransform()->DeepCopy(transform->GetMatrix());
+
+	emit RegistrationComplete();
 }

@@ -11,13 +11,14 @@
 #include "vtkMatrix4x4.h"
 #include "vtkPCA_ICP_Transform.h"
 #include "vtkLandmarkTransform.h"
+#include "vtkITKIterativeCloestPoint.h"
 
 class SurfaceRegistration : public QObject
 {
 	Q_OBJECT
 
 public:
-	enum RegistrationMethodEnum { ICP, PCAICP };
+	enum RegistrationMethodEnum { ICP, PCAICP, ITKICP };
 	explicit SurfaceRegistration(QObject* parent = 0);
 	~SurfaceRegistration();
 
@@ -37,6 +38,7 @@ private:
 	DataIO* m_dataIO;
 	void ICPRegistration(vtkPolyData* source);
 	void PCAICPRegistration(vtkPolyData* source);
+	void ITKICPRegistration(vtkPolyData* source);
 	int m_maxIterSteps;
 };
 
