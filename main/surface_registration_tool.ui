@@ -228,9 +228,12 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="initialTransformComboBox">
-           <property name="enabled">
-            <bool>true</bool>
+          <widget class="QPushButton" name="inversePushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
            </property>
            <property name="maximumSize">
             <size>
@@ -238,22 +241,9 @@
              <height>24</height>
             </size>
            </property>
-           <property name="currentText">
-            <string>User Matrix</string>
+           <property name="text">
+            <string>Inverse</string>
            </property>
-           <property name="sizeAdjustPolicy">
-            <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
-           </property>
-           <item>
-            <property name="text">
-             <string>User Matrix</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Pricipal Component</string>
-            </property>
-           </item>
           </widget>
          </item>
         </layout>
@@ -791,6 +781,64 @@
            <property name="text">
             <string>Save Transformed Surface</string>
            </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="sourceLabel_10">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>90</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Registration Method:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="methodComboBox">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="currentText">
+            <string>ICP</string>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+           </property>
+           <item>
+            <property name="text">
+             <string>ICP</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>PCA/ICP</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>

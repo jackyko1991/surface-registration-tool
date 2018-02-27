@@ -13,6 +13,7 @@
 #include "observe_error.h"
 #include <vtkCenterOfMass.h>
 #include "vtkDistancePolyDataFilter.h"
+#include <vtkPolyDataReader.h>
 
 class DataIO : public QObject
 {

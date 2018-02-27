@@ -9,18 +9,20 @@
 #include "vtkSmartPointer.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkMatrix4x4.h"
+#include "vtkPCA_ICP_Transform.h"
+#include "vtkLandmarkTransform.h"
 
 class SurfaceRegistration : public QObject
 {
 	Q_OBJECT
 
 public:
-	enum InitialTransformEnum { user_matrix, PCA };
+	enum RegistrationMethodEnum { ICP, PCAICP };
 	explicit SurfaceRegistration(QObject* parent = 0);
 	~SurfaceRegistration();
 
 	void SetDataIO(DataIO*);
-	void SetInitialTransformType(InitialTransformEnum);
+	void SetRegistrationMethod(RegistrationMethodEnum);
 	void SetMaximumIterationSteps(int);
 	void Update();
 
@@ -28,13 +30,13 @@ public slots:
 
 signals:
 	void InitialTransformComplete();
-	void IcpTransformComplete();
+	void RegistrationComplete();
 
 private:
-	InitialTransformEnum m_initialTransformEnum;
+	RegistrationMethodEnum m_registrationMethodEnum;
 	DataIO* m_dataIO;
-	void UserMatrixRegistration();
-	void PCARegistration();
+	void ICPRegistration(vtkPolyData* source);
+	void PCAICPRegistration(vtkPolyData* source);
 	int m_maxIterSteps;
 };
 

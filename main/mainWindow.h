@@ -45,7 +45,6 @@ protected:
 private slots :
 	void browseSource();
 	void browseTarget();
-	void initialTransformSet();
 	void initialTransformValueChange();
 	void execute();
 	void executeComplete();
@@ -71,6 +70,8 @@ private slots :
 	void sourceOpacityChange();
 	void targetOpacityChange();
 	void clearLog();
+	void inverseMatrix();
+	void readFileComplete();
 
 signals:
 	void loadDataComplete();
@@ -81,13 +82,15 @@ private:
 	void renderTarget();
 	void UpdateMatrixFromTransformWidgets();
 	
-	QFutureWatcher<void>* m_watcher;
+	QFutureWatcher<bool>* m_ioWatcher;
+	QFutureWatcher<void>* m_executeWatcher;
 	DataIO* m_dataIO;
 	vtkRenderer* m_renderer;
 	vtkPolyDataMapper* m_sourceMapper;
 	vtkPolyDataMapper* m_targetMapper;
 	vtkActor* m_sourceActor;
 	vtkActor* m_targetActor;
+	QMutex* m_mutex;
 };
 
 #endif // !MAINWINDOW_H

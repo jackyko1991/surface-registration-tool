@@ -52,7 +52,6 @@ MainWindow::MainWindow(QMainWindow *parent)
 	// Connect button signal slots
 	connect(ui.sourcePushButton, SIGNAL(clicked()), this, SLOT(browseSource()));
 	connect(ui.targetPushButton, SIGNAL(clicked()), this, SLOT(browseTarget()));
-	connect(ui.initialTransformComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(initialTransformSet()));
 	connect(ui.initialTransformTableView->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(initialTransformValueChange()));
 	connect(ui.rotateXSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateXSliderValueChange(int)));
 	connect(ui.rotateYSlider, SIGNAL(valueChanged(int)), this, SLOT(rotateYSliderValueChange(int)));
@@ -73,12 +72,13 @@ MainWindow::MainWindow(QMainWindow *parent)
 	connect(ui.sourceOpacitySlider, SIGNAL(valueChanged(int)), this, SLOT(sourceOpacityChange()));
 	connect(ui.targetOpacitySlider, SIGNAL(valueChanged(int)), this, SLOT(targetOpacityChange()));
 	connect(ui.clearPushButton, SIGNAL(clicked()), this, SLOT(clearLog()));
+	connect(ui.inversePushButton, SIGNAL(clicked()), this, SLOT(inverseMatrix()));
 }
 
 void MainWindow::browseSource()
 {
 	QString sourceFile = QFileDialog::getOpenFileName(this,
-		tr("Browse Source"), ui.sourcePlainTextEdit->toPlainText(), tr("Surface Files (*.stl *.vtp)"));
+		tr("Browse Source"), ui.sourcePlainTextEdit->toPlainText(), tr("Surface Files (*.stl *.vtp *.vtk)"));
 
 	if (!sourceFile.isNull())
 	{
@@ -91,15 +91,17 @@ void MainWindow::browseSource()
 		// connect read file signal slots
 		connect(m_dataIO, SIGNAL(sourceFileReadStatus(bool)), this, SLOT(sourceFileReadStatusPrint(bool)));
 
-		bool readStatus = m_dataIO->ReadSource();
+		// lock ui
+		enableUI(false);
 
-		if (!readStatus)
-		{
-			this->renderSource();
-			m_renderer->ResetCamera();
-		}
+		// Instantiate the watcher to unlock
+		m_ioWatcher = new QFutureWatcher<bool>;
+		connect(m_ioWatcher, SIGNAL(finished()), this, SLOT(readFileComplete()));
+
+		// use QtConcurrent to run the read file on a new thread;
+		QFuture<bool> future = QtConcurrent::run(m_dataIO, &DataIO::ReadSource);
+		m_ioWatcher->setFuture(future);
 	}
-	ui.textBrowser->append("===================================");
 }
 
 MainWindow::~MainWindow()
@@ -119,7 +121,7 @@ void MainWindow::setDataIO(DataIO* dataIO)
 void MainWindow::browseTarget()
 {
 	QString targetFile = QFileDialog::getOpenFileName(this,
-		tr("Browse Target"), ui.targetPlainTextEdit->toPlainText(), tr("Surface Files (*.stl *.vtp)"));
+		tr("Browse Target"), ui.targetPlainTextEdit->toPlainText(), tr("Surface Files (*.stl *.vtp *.vtk)"));
 
 	if (!targetFile.isNull())
 	{
@@ -132,43 +134,21 @@ void MainWindow::browseTarget()
 		// connect read file signal slots
 		connect(m_dataIO, SIGNAL(targetFileReadStatus(bool)), this, SLOT(targetFileReadStatusPrint(bool)));
 
-		bool readStatus = m_dataIO->ReadTarget();
+		// lock ui
+		enableUI(false);
 
-		if (!readStatus)
-		{
-			this->renderTarget();
-			m_renderer->ResetCamera();
-		}
-	}
-	ui.textBrowser->append("===================================");
-}
+		// Instantiate the watcher to unlock
+		m_ioWatcher = new QFutureWatcher<bool>;
+		connect(m_ioWatcher, SIGNAL(finished()), this, SLOT(readFileComplete()));
 
-void MainWindow::initialTransformSet()
-{
-	if (ui.initialTransformComboBox->currentText() == "Pricipal Component")
-	{
-		// set spinbox to non editable
-		enableUserMatrix(false);
-	}
-	else
-	{
-		// set spinbox to editable
-		enableUserMatrix(true);
-
-		//// reset the spinbox
-		//ui.rotateXSlider->setValue(0);
-		//ui.rotateYSlider->setValue(0);
-		//ui.rotateZSlider->setValue(0);
-		//ui.translateXSlider->setValue(0);
-		//ui.translateYSlider->setValue(0);
-		//ui.translateZSlider->setValue(0);
+		// use QtConcurrent to run the read file on a new thread;
+		QFuture<bool> future = QtConcurrent::run(m_dataIO, &DataIO::ReadTarget);
+		m_ioWatcher->setFuture(future);
 	}
 }
 
 void MainWindow::initialTransformValueChange()
 {
-	ui.initialTransformComboBox->setCurrentText("User Matrix");
-
 	for (int row = 0; row < 4; row++)
 	{
 		for (int column = 0; column < 4; column++)
@@ -200,37 +180,32 @@ void MainWindow::execute()
 
 	// log start registration
 	ui.textBrowser->append("Registration Starts...");
-	if (ui.initialTransformComboBox->currentText() == "User Matrix")
-	{
-		ui.textBrowser->append("Initial Transform by User Matrix:");
-		ui.textBrowser->append(
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 0)) + ", " + 
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 1)) + ", " +
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 2)) + ", " +
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 3)));
-		ui.textBrowser->append(
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 0)) + ", " +
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 1)) + ", " +
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 2)) + ", " +
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 3)));
-		ui.textBrowser->append(
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 0)) + ", " +
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 1)) + ", " +
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 2)) + ", " +
-			QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 3)));
-	}
-	else
-	{
-		ui.textBrowser->append("Initial Transform by Principal Component Analysis");
-	}
+	ui.textBrowser->append("Registration Method: " + ui.methodComboBox->currentText());
+
+	ui.textBrowser->append("Initial Transform:");
+	ui.textBrowser->append(
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 0)) + ", " + 
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 1)) + ", " +
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 2)) + ", " +
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(0, 3)));
+	ui.textBrowser->append(
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 0)) + ", " +
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 1)) + ", " +
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 2)) + ", " +
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(1, 3)));
+	ui.textBrowser->append(
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 0)) + ", " +
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 1)) + ", " +
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 2)) + ", " +
+		QString::number(m_dataIO->GetInitialTransform()->GetElement(2, 3)));
 
 	// Instantiate the watcher to unlock
-	m_watcher = new QFutureWatcher<void>;
-	connect(m_watcher, SIGNAL(finished()), this, SLOT(executeComplete()));
+	m_executeWatcher = new QFutureWatcher<void>;
+	connect(m_executeWatcher, SIGNAL(finished()), this, SLOT(executeComplete()));
 
 	// use QtConcurrent to run the registration on a new thread;
 	QFuture<void> future = QtConcurrent::run(this,&MainWindow::executeRun);
-	m_watcher->setFuture(future);
+	m_executeWatcher->setFuture(future);
 }
 
 void MainWindow::executeRun()
@@ -239,7 +214,7 @@ void MainWindow::executeRun()
 	SurfaceRegistration surfaceReg;
 	surfaceReg.SetDataIO(m_dataIO);
 	surfaceReg.SetMaximumIterationSteps(ui.maxIcpStepsSpinBox->value());
-	surfaceReg.SetInitialTransformType(SurfaceRegistration::InitialTransformEnum(ui.initialTransformComboBox->currentIndex()));
+	surfaceReg.SetRegistrationMethod(SurfaceRegistration::RegistrationMethodEnum(ui.methodComboBox->currentIndex()));
 	surfaceReg.Update();
 }
 
@@ -312,12 +287,12 @@ void MainWindow::sourceFileReadStatusPrint(bool status)
 {
 	if (status)
 	{
-		ui.textBrowser->append("Source surface read fail");
+		ui.textBrowser->append("Source file read fail");
 		ui.textBrowser->append(m_dataIO->GetErrorMessage().c_str());
 	}
 	else
 	{
-		ui.textBrowser->append("Source surface read success");
+		ui.textBrowser->append("Source file read success");
 	}
 
 	// disconnect related signal slots
@@ -328,12 +303,12 @@ void MainWindow::targetFileReadStatusPrint(bool status)
 {
 	if (status)
 	{
-		ui.textBrowser->append("Target surface read fail");
+		ui.textBrowser->append("Target file read fail");
 		ui.textBrowser->append(m_dataIO->GetErrorMessage().c_str());
 	}
 	else
 	{
-		ui.textBrowser->append("Target surface read success");
+		ui.textBrowser->append("Target file read success");
 	}
 
 	// disconnect related signal slots
@@ -419,7 +394,7 @@ void MainWindow::executeComplete()
 	// unlock ui
 	enableUI(true);
 
-	delete m_watcher;
+	delete m_executeWatcher;
 }
 
 void MainWindow::rotateXSpinBoxValueChange(double value)
@@ -488,6 +463,7 @@ void MainWindow::enableUserMatrix(bool enable)
 	ui.initialTransformTableView->setEnabled(enable);
 	ui.identityPushButton->setEnabled(enable);
 	ui.centroidPushButton->setEnabled(enable);
+	ui.inversePushButton->setEnabled(enable);
 	ui.rotateXSlider->setEnabled(enable);
 	ui.rotateYSlider->setEnabled(enable);
 	ui.rotateZSlider->setEnabled(enable);
@@ -508,18 +484,12 @@ void MainWindow::enableUI(bool enable)
 	ui.sourcePushButton->setEnabled(enable);
 	ui.targetPlainTextEdit->setEnabled(enable);
 	ui.targetPushButton->setEnabled(enable);
-	ui.initialTransformComboBox->setEnabled(enable);
-	if (ui.initialTransformComboBox->currentText() == "Pricipal Component")
-	{
-		ui.initialTransformTableView->setEnabled(false);
-	}
-	else
-	{
-		ui.initialTransformTableView->setEnabled(enable);
-	}
+	ui.methodComboBox->setEnabled(enable);
+	ui.initialTransformTableView->setEnabled(enable);
 	ui.executePushButton->setEnabled(enable);
 	ui.identityPushButton->setEnabled(enable);
 	ui.centroidPushButton->setEnabled(enable);
+	ui.inversePushButton->setEnabled(enable);
 	ui.rotateXSlider->setEnabled(enable);
 	ui.rotateYSlider->setEnabled(enable);
 	ui.rotateZSlider->setEnabled(enable);
@@ -554,4 +524,38 @@ void MainWindow::targetOpacityChange()
 void MainWindow::clearLog()
 {
 	ui.textBrowser->clear();
+}
+
+void MainWindow::inverseMatrix()
+{
+	disconnect(ui.initialTransformTableView->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(initialTransformValueChange()));
+
+	for (int row = 0; row < 4; row++)
+	{
+		for (int column = 0; column < 4; column++)
+		{
+			QModelIndex index = ui.initialTransformTableView->model()->index(row, column, QModelIndex());
+			ui.initialTransformTableView->model()->setData(index, QVariant(m_dataIO->GetInitialTransform()->GetElement(row, column)));
+		}
+	}
+
+	connect(ui.initialTransformTableView->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(initialTransformValueChange()));
+
+	this->renderSource();
+}
+
+void MainWindow::readFileComplete()
+{
+	if (!m_ioWatcher->future().result())
+	{
+		this->renderSource();
+		this->renderTarget();
+		m_renderer->ResetCamera();
+	}
+	ui.textBrowser->append("===================================");
+
+	// unlock ui
+	enableUI(true);
+
+	delete m_ioWatcher;
 }
