@@ -11,7 +11,7 @@ The program includes both GUI and commandline interface. IO supports STL,VTP and
 CLI is under development.
 
 ## Binary File
-You may found pre-compiled binary [here](./releases)
+You may found pre-compiled binary [here](https://github.com/jackyko1991/surface-registration-tool/releases)
 
 ## Compile for source
 Required Packages:
