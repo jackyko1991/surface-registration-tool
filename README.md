@@ -41,5 +41,8 @@ The surface first passthrought the initial transform matrix, then registered by 
 3. Iterative Closest Point by ITK (ITK-ICP)
 	ICP implemented by surface points as fudicial landmarks. Generally Faster method than PCA-ICP but converge speed is inconsisent for same surface pairs. Recommend for registering surfaces with small number of points. Users may refer to the documentation [here](https://itk.org/Doxygen/html/classitk_1_1PointSetToPointSetRegistrationMethod.html)
 
+## Inter-Surface Distance Calulation
+Available in GUI mode with one-shot calculation to visualize localized inter-surface distance. The colormap will be removed whenever the source is moved.
+
 ## Test Files
 Test surfaces could be found in [data folder](./data)
