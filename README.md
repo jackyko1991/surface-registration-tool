@@ -36,7 +36,7 @@ The surface first passthrough the initial transform matrix, then registered by f
 
 1. Iterative Closest Point (ICP)
 
-	Users may refer to the documentation [here](https://www.vtk.org/doc/nightly/html/classvtkIterativeClosestPointTransform.html)
+	Users may refer to the documentation [here](https://www.vtk.org/doc/nightly/html/classvtkIterativeClosestPointTransform.html). Recommended for large surface registration.
 
 2. Principal Component Analysis / Iterative Closest Point (PCA-ICP)
 
