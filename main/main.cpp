@@ -13,7 +13,7 @@ int main(int argc, char * argv[])
 	QApplication app(argc, argv);
 	QCoreApplication::setOrganizationName("Sucabot MedTech");
 	QCoreApplication::setApplicationName("Surface Registration Tool");
-	QCoreApplication::setApplicationVersion("v1.0a");
+	QCoreApplication::setApplicationVersion("v1.0b");
 
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QCoreApplication::applicationName());
