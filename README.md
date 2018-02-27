@@ -10,6 +10,9 @@ The program includes both GUI and commandline interface. IO supports STL,VTP and
 
 CLI is under development.
 
+## Binary File
+You may found pre-compiled binary [here](./releases)
+
 ## Compile for source
 Required Packages:
 1. CMake
