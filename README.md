@@ -3,7 +3,7 @@
 This software register two surface meshes by iterative closest point method.
 
 GUI Screenshot: 
-![GUI Screenshot](/GUI.png "GUI Screenshot")
+![GUI Screenshot](./GUI.jpg "GUI Screenshot")
 
 ## Usage
 The program includes both GUI and commandline interface. IO supports STL,VTP and VTK files.
