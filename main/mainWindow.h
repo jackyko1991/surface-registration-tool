@@ -78,10 +78,13 @@ private slots :
 	void clearLog();
 	void inverseMatrix();
 	void readFileComplete();
+	void saveFileComplete();
 	void updateDistance();
 	void distanceRun();
 	void distanceComplete();
 	void saveTransform();
+	void saveSurface();
+	void transformedSurfaceSaveStatusPrint(bool);
 
 signals:
 	void loadDataComplete();

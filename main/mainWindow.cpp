@@ -93,6 +93,7 @@ MainWindow::MainWindow(QMainWindow *parent)
 	connect(ui.inversePushButton, SIGNAL(clicked()), this, SLOT(inverseMatrix()));
 	connect(ui.distancePushButton, SIGNAL(clicked()), this, SLOT(updateDistance()));
 	connect(ui.saveTransformPushButton, SIGNAL(clicked()), this, SLOT(saveTransform()));
+	connect(ui.saveSurfacePushButton, SIGNAL(clicked()), this, SLOT(saveSurface()));
 }
 
 void MainWindow::browseSource()
@@ -404,6 +405,9 @@ void MainWindow::executeComplete()
 		}
 	}
 
+	// set registration transform to identity
+	m_dataIO->GetRegistartionTransform()->Identity();
+
 	// unlock ui
 	enableUI(true);
 
@@ -575,6 +579,16 @@ void MainWindow::readFileComplete()
 	delete m_ioWatcher;
 }
 
+void MainWindow::saveFileComplete()
+{
+	ui.textBrowser->append("===================================");
+
+	// unlock ui
+	enableUI(true);
+
+	delete m_ioWatcher;
+}
+
 void MainWindow::updateDistance()
 {
 	// check both source and target exists
@@ -647,4 +661,59 @@ void MainWindow::saveTransform()
 		ui.textBrowser->append("Transformation matrix save success");
 		ui.textBrowser->append("===================================");
 	}
+}
+
+void MainWindow::saveSurface()
+{
+	// check both source and target exists
+	if (!(m_dataIO->GetSourceSurface()->GetNumberOfCells() > 0 &&
+		m_dataIO->GetSourceSurface()->GetNumberOfPoints() > 0 &&
+		m_dataIO->GetTargetSurface()->GetNumberOfCells() > 0 &&
+		m_dataIO->GetTargetSurface()->GetNumberOfPoints() > 0))
+	{
+		return;
+	}
+
+	QString saveSurfaceFile = QFileDialog::getSaveFileName(this,
+		tr("Save Transformed Surface"), QFileInfo(ui.sourcePlainTextEdit->toPlainText()).absoluteDir().absolutePath() + "./transformed_surface.stl", tr("Surface Files (*.stl *.vtp *.vtk)"));
+
+	if (!saveSurfaceFile.isNull())
+	{
+		m_dataIO->SetTransformedSurfaceSavePath(saveSurfaceFile);
+
+		// write status print out
+		ui.textBrowser->append("Saving transformed surface: " + saveSurfaceFile);
+
+		// connect write file signal slots
+		connect(m_dataIO, SIGNAL(transformedFileSaveStatus(bool)), this, SLOT(transformedSurfaceSaveStatusPrint(bool)));
+
+		// lock ui
+		enableUI(false);
+
+		// Instantiate the watcher to unlock
+		m_ioWatcher = new QFutureWatcher<bool>;
+		connect(m_ioWatcher, SIGNAL(finished()), this, SLOT(saveFileComplete()));
+
+		// use QtConcurrent to run the read file on a new thread;
+		QFuture<bool> future = QtConcurrent::run(m_dataIO, &DataIO::WriteTransformedSurface);
+		m_ioWatcher->setFuture(future);
+
+	}
+}
+
+void MainWindow::transformedSurfaceSaveStatusPrint(bool status)
+{
+	if (status)
+	{
+		ui.textBrowser->append("Transformed surface save fail");
+		ui.textBrowser->append(m_dataIO->GetErrorMessage().c_str());
+	}
+	else
+	{
+		ui.textBrowser->append("Transformed surface save success");
+	}
+
+	// disconnect related signal slots
+	disconnect(m_dataIO, SIGNAL(transformedFileSaveStatus(bool)), this, SLOT(transformedSurfaceSaveStatusPrint(bool)));
+
 }

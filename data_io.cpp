@@ -49,6 +49,11 @@ void DataIO::SetRegistrationTransformSavePath(QString transformSavePath)
 	m_registrationTransformSaveFile.setFile(transformSavePath);
 }
 
+void DataIO::SetTransformedSurfaceSavePath(QString tranformedSurfaceSavePath)
+{
+	m_transformedSurfaceSaveFile.setFile(tranformedSurfaceSavePath);
+}
+
 vtkPolyData * DataIO::GetSourceSurface()
 {
 	return m_sourceSurface;
@@ -72,6 +77,95 @@ double* DataIO::GetSourceCentroid()
 double * DataIO::GetTargetCentroid()
 {
 	return m_targetCentroid;
+}
+
+bool DataIO::WriteTransformedSurface()
+{
+	std::cout << m_transformedSurfaceSaveFile.absoluteFilePath().toStdString() << std::endl;
+
+	// Return 0 for successful read and 1 for fail read
+	vtkSmartPointer<ErrorObserver> errorObserver = vtkSmartPointer<ErrorObserver>::New();
+
+	// initial transform
+	vtkSmartPointer<vtkMatrix4x4> finalRegistrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	vtkMatrix4x4::Multiply4x4(m_initialTransform, m_registrationTransform, finalRegistrationMatrix);
+
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->PostMultiply();
+	transform->SetMatrix(finalRegistrationMatrix);
+
+	m_initialTransform->Print(std::cout);
+	m_registrationTransform->Print(std::cout);
+
+	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	transformFilter->SetTransform(transform);
+	transformFilter->SetInputData(m_sourceSurface);
+	transformFilter->AddObserver(vtkCommand::ErrorEvent, errorObserver);
+	transformFilter->Update();
+
+	if (errorObserver->GetError())
+	{
+		m_errorMessage = errorObserver->GetErrorMessage();
+		emit transformedFileSaveStatus(1);
+		return 1;
+	}
+
+	// actually save the file
+	if (m_transformedSurfaceSaveFile.suffix() == "vtp" || m_transformedSurfaceSaveFile.suffix() == "VTP")
+	{
+		vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+		writer->SetFileName(m_transformedSurfaceSaveFile.absoluteFilePath().toStdString().c_str());
+		writer->SetInputData(transformFilter->GetOutput());
+		writer->AddObserver(vtkCommand::ErrorEvent, errorObserver);
+		writer->Update();
+
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit transformedFileSaveStatus(1);
+			return 1;
+		}
+	}
+	else if (m_transformedSurfaceSaveFile.suffix() == "stl" || m_transformedSurfaceSaveFile.suffix() == "STL")
+	{
+		vtkSmartPointer<vtkSTLWriter> writer = vtkSmartPointer<vtkSTLWriter>::New();
+		writer->SetFileName(m_transformedSurfaceSaveFile.absoluteFilePath().toStdString().c_str());
+		writer->SetInputData(transformFilter->GetOutput());
+		writer->AddObserver(vtkCommand::ErrorEvent, errorObserver);
+		writer->Update();
+
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit transformedFileSaveStatus(1);
+			return 1;
+		}
+	}
+	else if (m_transformedSurfaceSaveFile.suffix() == "vtk" || m_transformedSurfaceSaveFile.suffix() == "VTK")
+	{
+		vtkSmartPointer<vtkPolyDataWriter> writer = vtkSmartPointer<vtkPolyDataWriter>::New();
+		writer->SetFileName(m_transformedSurfaceSaveFile.absoluteFilePath().toStdString().c_str());
+		writer->SetInputData(transformFilter->GetOutput());
+		writer->AddObserver(vtkCommand::ErrorEvent, errorObserver);
+		writer->Update();
+
+		if (errorObserver->GetError())
+		{
+			m_errorMessage = errorObserver->GetErrorMessage();
+			emit transformedFileSaveStatus(1);
+			return 1;
+		}
+	}
+	else
+	{
+		m_errorMessage = "Invalid data type";
+		emit transformedFileSaveStatus(1);
+		return 1;
+	}
+
+	emit transformedFileSaveStatus(0);
+
+	return 0;
 }
 
 bool DataIO::ReadTarget()
