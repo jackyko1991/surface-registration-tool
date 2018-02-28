@@ -40,6 +40,8 @@ int main(int argc, char * argv[])
 	else
 	{
 		// Start mainwindow
+		#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+
 		MainWindow mainWin;
 		mainWin.setDataIO(dataIO);
 
