@@ -11,7 +11,7 @@ int main(int argc, char * argv[])
 	//Q_INIT_RESOURCE(application);
 
 	QApplication app(argc, argv);
-	QCoreApplication::setOrganizationName("Sucabot MedTech");
+	QCoreApplication::setOrganizationName("Jacky Ko");
 	QCoreApplication::setApplicationName("Surface Registration Tool");
 	QCoreApplication::setApplicationVersion("v1.0b");
 
